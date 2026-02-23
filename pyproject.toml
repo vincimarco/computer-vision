@@ -1,0 +1,20 @@
+[project]
+name = "computer-vision"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "keras>=3.13.2",
+    "pandas>=2.3.3",
+    "polars>=1.38.1",
+    "sktime>=0.40.1",
+    "tensorflow[and-cuda]>=2.20.0",
+]
+
+[project.scripts]
+computer-vision = "computer_vision:main"
+
+[build-system]
+requires = ["uv_build>=0.10.4,<0.11.0"]
+build-backend = "uv_build"
