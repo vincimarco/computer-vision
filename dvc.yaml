@@ -1,0 +1,8 @@
+stages:
+  preprocessing-interim:
+    cmd: uv run computer-vision preprocessing interim
+    deps:
+      - ./data/1.raw/ECDUY/
+      - ./src/computer_vision/cli.py
+    outs:
+      - ./data/2.interim/ECDUY/
