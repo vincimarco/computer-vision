@@ -1,0 +1,20 @@
+schema: '2.0'
+stages:
+  preprocessing-interim:
+    cmd: uv run computer-vision preprocessing interim
+    deps:
+    - path: ./data/1.raw/ECDUY/
+      hash: md5
+      md5: cb374ae116ccb684e7fa0479ceea41e8.dir
+      size: 24144389137
+      nfiles: 24
+    - path: ./src/computer_vision/cli.py
+      hash: md5
+      md5: e7b99bb4a8c6755521d8a3b01ca3174d
+      size: 773
+    outs:
+    - path: ./data/2.interim/ECDUY/
+      hash: md5
+      md5: 41081c76bfb4d5b83b6c68a03c4acfe6.dir
+      size: 17424138223
+      nfiles: 23
