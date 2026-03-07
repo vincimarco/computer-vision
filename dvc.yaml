@@ -3,6 +3,14 @@ stages:
     cmd: uv run computer-vision preprocessing interim
     deps:
       - ./data/1.raw/ECDUY/
-      - ./src/computer_vision/cli.py
+      - ./src/computer_vision/preprocessing.py
     outs:
       - ./data/2.interim/ECDUY/
+
+  preprocessing-final:
+    cmd: uv run computer-vision preprocessing final
+    deps:
+      - ./data/2.interim/ECDUY/
+      - ./src/computer_vision/preprocessing.py
+    outs:
+      - ./data/3.final/ECDUY/
