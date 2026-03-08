@@ -1,4 +1,5 @@
 import polars as pl
+import tqdm
 
 from computer_vision.config import FINAL_DATA_DIR, INTERIM_DATA_DIR, RAW_DATA_DIR
 
@@ -36,7 +37,8 @@ def final():
         for i in range(0, len(customers_ids), batch_size)
     ]
 
-    for batch in tqdm.tqdm(batches):
+    for batch in (pbar := tqdm.tqdm(batches)):
+        pbar.set_description(f"Processing customers {batch[0]} to {batch[-1]}")
         process_customer_batch(batch)
 
     # multiprocessing.set_start_method("spawn", force=True)

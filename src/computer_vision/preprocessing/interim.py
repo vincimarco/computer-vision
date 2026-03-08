@@ -1,4 +1,5 @@
 import polars as pl
+import tqdm
 
 from computer_vision.config import INTERIM_DATA_DIR, RAW_DATA_DIR
 
@@ -6,8 +7,8 @@ from computer_vision.config import INTERIM_DATA_DIR, RAW_DATA_DIR
 def interim():
     files = list(RAW_DATA_DIR.glob("*.csv.tar.gz"))
     files.sort()
-    for file in files:
-        print(f"Processing {file}...")
+    for file in (pbar := tqdm.tqdm(files, desc="")):
+        pbar.set_description(f"Processing {file.name}")
         lf = pl.scan_csv(
             file,
             new_columns=["datetime", "id", "value"],
