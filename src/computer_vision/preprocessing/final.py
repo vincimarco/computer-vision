@@ -7,7 +7,11 @@ from computer_vision.config import FINAL_DATA_DIR, INTERIM_DATA_DIR, RAW_DATA_DI
 def process_customer_batch(customer_ids):
     lf = pl.scan_parquet(
         INTERIM_DATA_DIR / "*.parquet",
-        schema={"datetime": pl.Datetime, "id": pl.Int32, "value": pl.Float32},
+        schema={
+            "datetime": pl.Datetime("us", "America/Montevideo"),
+            "id": pl.Int32,
+            "value": pl.Float32,
+        },
     )
     lf = lf.filter(pl.col("id").is_in(customer_ids))
     lf = lf.select(["id", "datetime", "value"])
