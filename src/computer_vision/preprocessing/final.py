@@ -1,27 +1,6 @@
-import pathlib
-
 import polars as pl
-import tqdm
 
 from computer_vision.config import FINAL_DATA_DIR, INTERIM_DATA_DIR, RAW_DATA_DIR
-
-
-def interim():
-    files = list(RAW_DATA_DIR.glob("*.csv.tar.gz"))
-    files.sort()
-    for file in files:
-        print(f"Processing {file}...")
-        lf = pl.scan_csv(
-            file,
-            new_columns=["datetime", "id", "value"],
-            ignore_errors=True,
-            schema={"datetime": pl.Int32, "id": pl.Int32, "value": pl.Float32},
-            low_memory=True,
-        )
-        lf = lf.drop_nulls("datetime")
-        lf = lf.with_columns(pl.from_epoch(pl.col("datetime")))
-        lf = lf.cast({"id": pl.Int32, "value": pl.Float32})
-        lf.sink_parquet(INTERIM_DATA_DIR / f"{file.stem}.parquet")
 
 
 def process_customer_batch(customer_ids):
@@ -39,7 +18,7 @@ def process_customer_batch(customer_ids):
 
 
 def final():
-    customers_csv = pathlib.Path("data/1.raw/ECDUY/customers.csv")
+    customers_csv = RAW_DATA_DIR / "customers.csv"
     pl.scan_csv(customers_csv).sink_parquet(FINAL_DATA_DIR / "customers.parquet")
 
     customers_ids = (
