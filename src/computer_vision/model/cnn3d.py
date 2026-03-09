@@ -12,11 +12,11 @@ if TYPE_CHECKING:
 
 import contextlib
 
-from sktime.forecasting.base import BaseForecaster
+from sktime.forecasting.base import _BaseGlobalForecaster
 
 
-class CNN3D(BaseForecaster):
-    """Custom forecaster. todo: write docstring.
+class CNN3D(_BaseGlobalForecaster):
+    """Custom global forecasting model based on 3D CNN. todo: write docstring.
 
     todo: describe your custom forecaster here
 
@@ -48,8 +48,8 @@ class CNN3D(BaseForecaster):
         #
         # y_inner_mtype, X_inner_mtype control which format X/y appears in
         # in the inner functions _fit, _predict, etc
-        "y_inner_mtype": "pd.Series",
-        "X_inner_mtype": "pd.DataFrame",
+        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         # valid values: str and list of str
         # if str, must be a valid mtype str, in sktime.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
@@ -72,12 +72,13 @@ class CNN3D(BaseForecaster):
         # capability:exogenous = does estimator use exogeneous X nontrivially?
         "capability:exogenous": True,
         # valid values: boolean False (ignores X), True (uses X in non-trivial manner)
-        # CAVEAT: if tag is set to False, inner methods always see X=None
         #
         # requires-fh-in-fit = is forecasting horizon always required in fit?
         "requires-fh-in-fit": True,
+        #
+        # capability:global_forecasting = does forecaster support global forecasting?
+        "capability:global_forecasting": True,
         # valid values: boolean True (yes), False (no)
-        # if True, raises exception in fit if fh has not been passed
         #
         # ownership and contribution tags
         # -------------------------------
@@ -116,6 +117,7 @@ class CNN3D(BaseForecaster):
         sample_weights_function: "str | None" = None,
         decay_rate: float = 0.01,
         window_size: str = "168h",
+        broadcasting: bool = True,
     ):
         # IMPORTANT: the self.params should never be overwritten or mutated from now on
         # for handling defaults etc, write to other attributes, e.g., self._parama
@@ -131,6 +133,15 @@ class CNN3D(BaseForecaster):
         self.sample_weights_function = sample_weights_function
         self.decay_rate = decay_rate
         self.window_size = window_size
+        self.broadcasting = broadcasting
+        if self.broadcasting:
+            self.set_tags(
+                **{
+                    "y_inner_mtype": "pd.Series",
+                    "X_inner_mtype": "pd.DataFrame",
+                    "capability:global_forecasting": False,
+                }
+            )
 
         # leave this as is
         super().__init__()
@@ -211,7 +222,7 @@ class CNN3D(BaseForecaster):
         return self
 
     # todo: implement this, mandatory
-    def _predict(self, fh, X):
+    def _predict(self, fh, X=None, y=None):
         """Forecast time series at future horizon.
 
         private _predict containing the core logic, called from predict
@@ -230,6 +241,10 @@ class CNN3D(BaseForecaster):
             If not passed in _fit, guaranteed to be passed here
         X : pd.DataFrame, optional (default=None)
             Exogenous time series
+        y : time series in ``sktime`` compatible format, optional (default=None)
+            Historical values of the time series that should be predicted.
+            If not None, global forecasting will be performed.
+            Only pass the historical values not the time points to be predicted.
 
         Returns
         -------
@@ -301,6 +316,69 @@ class CNN3D(BaseForecaster):
 
         return self
 
+    # todo: consider implementing this, optional for global forecasters
+    # if not implementing, delete the _pretrain and _pretrain_update methods
+    # requires setting the tag "capability:pretrain" to True
+    # pretrain receives panel or hierarchical data (MultiIndex DataFrame)
+    # and should learn global patterns shared across instances
+    def _pretrain(self, y, X=None, fh=None):
+        """Pretrain forecaster on panel (global) data.
+
+        Learn global patterns from multiple time series.
+
+        Parameters
+        ----------
+        y : pd.DataFrame with MultiIndex or list of Series
+            Panel data to learn from. If DataFrame with MultiIndex,
+            should have (instance, time) levels.
+        X : pd.DataFrame, optional
+            Exogenous data (currently not used)
+        fh : ForecastingHorizon, optional
+            Forecasting horizon (currently not used)
+
+        Returns
+        -------
+        self : reference to self
+        """
+        import numpy as np  # noqa: PLC0415
+        import pandas as pd  # noqa: PLC0415
+
+        # Extract global statistics from panel data for initialization
+        if isinstance(y, pd.DataFrame):
+            all_values = y.values.flatten()
+        else:
+            all_values = np.asarray(y).flatten()
+
+        self.global_mean_ = float(np.nanmean(all_values))
+        self.global_std_ = float(np.nanstd(all_values))
+        self.n_pretrain_instances_ = (
+            len(y.index.droplevel(-1).unique())
+            if isinstance(y.index, pd.MultiIndex)
+            else 1
+        )
+
+        return self
+
+    def _pretrain_update(self, y, X=None, fh=None):
+        """Update global statistics with more panel data.
+
+        This implements incremental learning by recomputing statistics.
+
+        Parameters
+        ----------
+        y : pd.DataFrame with MultiIndex or list of Series
+            Additional panel data to learn from
+        X : pd.DataFrame, optional
+            Exogenous data (currently not used)
+        fh : ForecastingHorizon, optional
+            Forecasting horizon (currently not used)
+
+        Returns
+        -------
+        self : reference to self
+        """
+        return self._pretrain(y=y, X=X, fh=fh)
+
     # todo: implement this if this is an estimator contributed to sktime
     #   or to run local automated unit and integration testing of estimator
     #   method should return default parameters, so that a test instance can be created
@@ -350,10 +428,27 @@ class CNN3D(BaseForecaster):
         #
         # example 2: specify params as list of dictionary
         # note: Only first dictionary will be used by create_test_instance
-        # params = [{"est": value1, "parama": value2},
-        #           {"est": value3, "parama": value4}]
-        #
-        # return params
+        params1 = {
+            "epochs": 2,
+            "batch_size": 32,
+            "random_state": 42,
+            "loss": "mse",
+            "optimizer": "adam",
+            "kernel_width": 3,
+            "dropout_rate": 0.2,
+            "window_size": "168h",
+        }
+        params2 = {
+            "epochs": 5,
+            "batch_size": 16,
+            "random_state": 123,
+            "loss": "mse",
+            "optimizer": "adam",
+            "kernel_width": 5,
+            "dropout_rate": 0.3,
+            "window_size": "24h",
+        }
+        return [params1, params2]
 
     @property
     def history(self):
