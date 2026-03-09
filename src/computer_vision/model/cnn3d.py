@@ -6,16 +6,14 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     import keras  # noqa: TC004
-    import numpy as np
-    import pandas as pd  # noqa: TC004
-    from sktime.forecasting.base import ForecastingHorizon
-
 import contextlib
 
-from sktime.forecasting.base import _BaseGlobalForecaster
+import numpy as np
+import pandas as pd
+from sktime.forecasting.base import BaseForecaster
 
 
-class CNN3D(_BaseGlobalForecaster):
+class CNN3D(BaseForecaster):
     """Custom global forecasting model based on 3D CNN. todo: write docstring.
 
     todo: describe your custom forecaster here
@@ -48,8 +46,8 @@ class CNN3D(_BaseGlobalForecaster):
         #
         # y_inner_mtype, X_inner_mtype control which format X/y appears in
         # in the inner functions _fit, _predict, etc
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_mtype": "pd-multiindex",
+        "X_inner_mtype": "pd-multiindex",
         # valid values: str and list of str
         # if str, must be a valid mtype str, in sktime.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
@@ -75,9 +73,18 @@ class CNN3D(_BaseGlobalForecaster):
         #
         # requires-fh-in-fit = is forecasting horizon always required in fit?
         "requires-fh-in-fit": True,
+        # X-y-must-have-same-index = can estimator handle different X/y index?
+        "X-y-must-have-same-index": True,
+        # valid values: boolean True (yes), False (no)
+        # if True, raises exception if X.index is not contained in y.index
+        #
+        # enforce_index_type = index type that needs to be enforced in X/y
+        "enforce_index_type": pd.DatetimeIndex,
+        # valid values: pd.Index subtype, or list of pd.Index subtype
+        # if not None, raises exception if X.index, y.index level -1 is not of that type
         #
         # capability:global_forecasting = does forecaster support global forecasting?
-        "capability:global_forecasting": True,
+        "capability:global_forecasting": False,
         # valid values: boolean True (yes), False (no)
         #
         # ownership and contribution tags
@@ -117,7 +124,6 @@ class CNN3D(_BaseGlobalForecaster):
         sample_weights_function: "str | None" = None,
         decay_rate: float = 0.01,
         window_size: str = "168h",
-        broadcasting: bool = True,
     ):
         # IMPORTANT: the self.params should never be overwritten or mutated from now on
         # for handling defaults etc, write to other attributes, e.g., self._parama
@@ -133,15 +139,6 @@ class CNN3D(_BaseGlobalForecaster):
         self.sample_weights_function = sample_weights_function
         self.decay_rate = decay_rate
         self.window_size = window_size
-        self.broadcasting = broadcasting
-        if self.broadcasting:
-            self.set_tags(
-                **{
-                    "y_inner_mtype": "pd.Series",
-                    "X_inner_mtype": "pd.DataFrame",
-                    "capability:global_forecasting": False,
-                }
-            )
 
         # leave this as is
         super().__init__()
@@ -149,18 +146,11 @@ class CNN3D(_BaseGlobalForecaster):
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc
         # instead, write to self._parama, self._newparam (starting with _)
-        import pandas as pd  # noqa: PLC0415
-
         self._metrics = metrics if metrics is not None else ["mae", "mape"]
         self._window_size = pd.Timedelta(window_size)
 
     # todo: implement this, mandatory
-    def _fit(
-        self,
-        y: "pd.Series",
-        X: "pd.DataFrame",
-        fh: "ForecastingHorizon",
-    ):
+    def _fit(self, y, X, fh):
         """Fit forecaster to training data.
 
         private _fit containing the core logic, called from fit
@@ -193,6 +183,8 @@ class CNN3D(_BaseGlobalForecaster):
         # IMPORTANT: avoid side effects to y, X, fh
 
         from copy import deepcopy  # noqa: PLC0415
+
+        self._data_freq = self._estimate_data_freq(y)
 
         (
             past_endos,
@@ -253,16 +245,10 @@ class CNN3D(_BaseGlobalForecaster):
             Point predictions
         """
 
-        import numpy as np  # noqa: PLC0415
-        import pandas as pd  # noqa: PLC0415
-
-        self._y: pd.Series
-        self._fh: ForecastingHorizon
-
-        series_freq = pd.infer_freq(self._y.index)
-        window_size = pd.Timedelta(series_freq) // self._window_size
+        window_size = self._window_size // self._data_freq
 
         past_endo = np.array(list(self._y.iloc[-window_size:]))
+        print(f"Past endogenous values: {past_endo}")
         past_endo = past_endo.reshape(
             1, window_size, 1
         )  # Select the last window_size points, reshape, and wrap in numpy array
@@ -315,69 +301,6 @@ class CNN3D(_BaseGlobalForecaster):
         )
 
         return self
-
-    # todo: consider implementing this, optional for global forecasters
-    # if not implementing, delete the _pretrain and _pretrain_update methods
-    # requires setting the tag "capability:pretrain" to True
-    # pretrain receives panel or hierarchical data (MultiIndex DataFrame)
-    # and should learn global patterns shared across instances
-    def _pretrain(self, y, X=None, fh=None):
-        """Pretrain forecaster on panel (global) data.
-
-        Learn global patterns from multiple time series.
-
-        Parameters
-        ----------
-        y : pd.DataFrame with MultiIndex or list of Series
-            Panel data to learn from. If DataFrame with MultiIndex,
-            should have (instance, time) levels.
-        X : pd.DataFrame, optional
-            Exogenous data (currently not used)
-        fh : ForecastingHorizon, optional
-            Forecasting horizon (currently not used)
-
-        Returns
-        -------
-        self : reference to self
-        """
-        import numpy as np  # noqa: PLC0415
-        import pandas as pd  # noqa: PLC0415
-
-        # Extract global statistics from panel data for initialization
-        if isinstance(y, pd.DataFrame):
-            all_values = y.values.flatten()
-        else:
-            all_values = np.asarray(y).flatten()
-
-        self.global_mean_ = float(np.nanmean(all_values))
-        self.global_std_ = float(np.nanstd(all_values))
-        self.n_pretrain_instances_ = (
-            len(y.index.droplevel(-1).unique())
-            if isinstance(y.index, pd.MultiIndex)
-            else 1
-        )
-
-        return self
-
-    def _pretrain_update(self, y, X=None, fh=None):
-        """Update global statistics with more panel data.
-
-        This implements incremental learning by recomputing statistics.
-
-        Parameters
-        ----------
-        y : pd.DataFrame with MultiIndex or list of Series
-            Additional panel data to learn from
-        X : pd.DataFrame, optional
-            Exogenous data (currently not used)
-        fh : ForecastingHorizon, optional
-            Forecasting horizon (currently not used)
-
-        Returns
-        -------
-        self : reference to self
-        """
-        return self._pretrain(y=y, X=X, fh=fh)
 
     # todo: implement this if this is an estimator contributed to sktime
     #   or to run local automated unit and integration testing of estimator
@@ -472,18 +395,19 @@ class CNN3D(_BaseGlobalForecaster):
         pd.DataFrame
             DataFrame containing the extracted temporal features.
         """
-        import numpy as np  # noqa: PLC0415
-        import pandas as pd  # noqa: PLC0415
 
-        datetime_index = pd.DatetimeIndex(index)
+        # Get the first level (id) unique value
+        first_id = self._y.index.get_level_values(0).unique()[0]
+        # Get the index for this id (timestamp level)
+        idx = self._y.loc[first_id].index
 
         features = pd.DataFrame(
             {
-                "hour": datetime_index.hour,  # ty:ignore[unresolved-attribute]
-                "dayofweek": datetime_index.dayofweek,  # ty:ignore[unresolved-attribute]
-                "month": datetime_index.month,  # ty:ignore[unresolved-attribute]
+                "hour": idx.hour,  # ty:ignore[unresolved-attribute]
+                "dayofweek": idx.dayofweek,  # ty:ignore[unresolved-attribute]
+                "month": idx.month,  # ty:ignore[unresolved-attribute]
             },
-            index=index,
+            index=idx,
         )
 
         # Min-max scaling
@@ -683,17 +607,13 @@ class CNN3D(_BaseGlobalForecaster):
     ) -> tuple["np.ndarray", "np.ndarray", "np.ndarray", "np.ndarray"]:
         import contextlib  # noqa: PLC0415
 
-        import numpy as np  # noqa: PLC0415
-        import pandas as pd  # noqa: PLC0415
         import tqdm  # noqa: PLC0415
         from sktime.split.slidingwindow import SlidingWindowSplitter  # noqa: PLC0415
 
-        data_freq = pd.Timedelta(pd.infer_freq(self._y.index))
-
-        window_length = self._window_size // data_freq
+        window_length = int(self._window_size // self._data_freq)
         print(window_length)
 
-        step_length = pd.Timedelta("1h") // data_freq
+        step_length = int(pd.Timedelta("1h") // self._data_freq)
         print(step_length)
 
         cv = SlidingWindowSplitter(
@@ -769,8 +689,36 @@ class CNN3D(_BaseGlobalForecaster):
 
         return weights
 
-    @property
-    def _data_freq(self) -> "pd.Timedelta":
-        import pandas as pd  # noqa: PLC0415
+    def _estimate_data_freq(self, y: pd.DataFrame) -> "pd.Timedelta":
+        """Estimate the frequency of the time series data.
 
-        return pd.Timedelta(pd.infer_freq(self._y.index))
+        This method infers the frequency of the time series data based on the index
+        of the target variable `y`. It uses pandas' `infer_freq` function to determine
+        the frequency string and then converts it to a `pd.Timedelta` object for
+        arithmetic operations.
+
+        For MultiIndex data (e.g., (id, timestamp)), frequency is extracted from
+        the timestamp level of the first entity.
+
+        Parameters
+        ----------
+        y : pd.DataFrame
+            The target time series data for which to estimate the frequency.
+
+
+        Returns
+        -------
+        pd.Timedelta
+            The inferred frequency of the time series data as a timedelta object.
+        """
+        # Get the first level (id) unique value
+        first_id = self._y.index.get_level_values(0).unique()[0]
+        # Get the index for this id (timestamp level)
+        idx = self._y.loc[first_id].index
+
+        freq_str = pd.infer_freq(idx)
+        data_freq = pd.tseries.frequencies.to_offset(freq_str)
+        # Convert offset to timedelta for arithmetic operations
+        data_freq_timedelta = pd.Timedelta(data_freq)
+
+        return data_freq_timedelta
