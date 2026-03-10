@@ -4,6 +4,9 @@ general:
   seed: 42
   test_split: 0.2
 
+preprocessing:
+  agg_frequency: 1h
+
 models:
   cnn3d:
     epochs: 200
