@@ -10,29 +10,29 @@ stages:
       nfiles: 24
     - path: ./src/computer_vision/preprocessing/interim.py
       hash: md5
-      md5: 2440147cf3f1377781f02590b4f9de30
-      size: 882
+      md5: c78a9d1b68d5d1f160954f7c257b37aa
+      size: 971
     outs:
     - path: ./data/2.interim/ECDUY/
       hash: md5
-      md5: 1c7a29d4b8629b9e6b1b2216624ec481.dir
-      size: 20877326454
+      md5: fec17af491ac55848b1b8cbaf81ede5b.dir
+      size: 19382916978
       nfiles: 23
   preprocessing-final:
     cmd: uv run computer-vision preprocessing final
     deps:
     - path: ./data/2.interim/ECDUY/
       hash: md5
-      md5: 1c7a29d4b8629b9e6b1b2216624ec481.dir
-      size: 20877326454
+      md5: fec17af491ac55848b1b8cbaf81ede5b.dir
+      size: 19382916978
       nfiles: 23
     - path: ./src/computer_vision/preprocessing/final.py
       hash: md5
-      md5: 37f143868248e792ced3e29c78916fff
-      size: 1760
+      md5: 37c94ce3803074b3f6f224688485fd60
+      size: 1777
     outs:
     - path: ./data/3.final/ECDUY/
       hash: md5
-      md5: 506a9d2f274cc7f8d309235a44aac82c.dir
-      size: 22395033076
+      md5: d40edb146869b673320e49d1163e9742.dir
+      size: 21231038298
       nfiles: 112

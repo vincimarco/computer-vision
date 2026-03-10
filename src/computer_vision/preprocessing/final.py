@@ -1,7 +1,11 @@
 import polars as pl
 import tqdm
 
-from computer_vision.config import FINAL_DATA_DIR, INTERIM_DATA_DIR, RAW_DATA_DIR
+from computer_vision.config import (
+    FINAL_DATA_DIR,
+    INTERIM_DATA_DIR,
+    RAW_DATA_DIR,
+)
 
 
 def process_customer_batch(customer_ids):
