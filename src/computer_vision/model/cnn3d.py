@@ -1,5 +1,3 @@
-# todo: uncomment the following line, enter authors' GitHub IDs
-# __author__ = [authorGitHubID, anotherAuthorGitHubID]
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -20,21 +18,30 @@ class CNN3D(BaseForecaster):
 
     Parameters
     ----------
-    parama : int
-        descriptive explanation of parama
-    paramb : string, optional (default='default')
-        descriptive explanation of paramb
-    paramc : boolean, optional (default=MyOtherEstimator(foo=42))
-        descriptive explanation of paramc
-    and so on
+    epochs : int, default=200
+        Number of training epochs.
+    batch_size : int, default=32
+        Batch size for training.
+    random_state : int, default=42
+        Random seed for reproducibility.
+    loss : str | keras.Metric, default="mse"
+        Loss function for training.
+    metrics : Sequence[str | keras.Metric] | None, default=None
+        Metrics to compute during training. Defaults to ["mae", "mape"].
+    optimizer : str | keras.optimizers.Optimizer, default="adam"
+        Optimizer for training.
+    kernel_width : str, default="1h"
+        Width of convolutional kernel as timedelta string.
+    dropout_rate : float, default=0.2
+        Dropout rate for regularization.
+    sample_weights_function : str | None, default=None
+        Method for computing sample weights ("exponential" or None).
+    decay_rate : float, default=0.01
+        Decay rate for exponential sample weights.
+    window_size : str, default="168h"
+        Size of history window as timedelta string.
     """
 
-    # todo: fill out estimator tags here
-    #  tags are inherited from parent class if they are not set
-    # todo: define the forecaster scitype by setting the tags
-    #  the "forecaster scitype" is determined by the tags
-    #   scitype:y - the expected input scitype of y - univariate or multivariate or both
-    # tag values are "safe defaults" which can usually be left as-is
     _tags = {
         # tags and full specifications are available in the tag API reference
         # https://www.sktime.net/en/stable/api_reference/tags.html
@@ -59,19 +66,9 @@ class CNN3D(BaseForecaster):
         # scitype:y controls whether internal y can be univariate/multivariate
         # if multivariate is not valid, applies vectorization over variables
         "scitype:y": "univariate",
-        # valid values: "univariate", "multivariate", "both"
-        #   "univariate": inner _fit, _predict, etc, receive only univariate series
-        #   "multivariate": inner methods receive only series with 2 or more variables
-        #   "both": inner methods can see series with any number of variables
-        #
-        # capability tags: properties of the estimator
-        # --------------------------------------------
-        #
-        # capability:exogenous = does estimator use exogeneous X nontrivially?
         "capability:exogenous": True,
-        # valid values: boolean False (ignores X), True (uses X in non-trivial manner)
-        #
-        # requires-fh-in-fit = is forecasting horizon always required in fit?
+        "X-y-must-have-same-index": True,
+        "enforce_index_type": pd.DatetimeIndex,
         "requires-fh-in-fit": True,
         # X-y-must-have-same-index = can estimator handle different X/y index?
         "X-y-must-have-same-index": True,
@@ -111,29 +108,24 @@ class CNN3D(BaseForecaster):
     # todo: add any hyper-parameters and components to constructor
     def __init__(
         self,
-        # Keras stuff
         epochs: int = 200,
         batch_size: int = 32,
         random_state: int = 42,
         loss: "str | keras.Metric" = "mse",
         metrics: "Sequence[str | keras.Metric] | None" = None,
         optimizer: "str | keras.optimizers.Optimizer" = "adam",
-        # Inner model
-        kernel_width: int = 3,
+        kernel_width: str = "1h",
         dropout_rate: float = 0.2,
         sample_weights_function: "str | None" = None,
         decay_rate: float = 0.01,
         window_size: str = "168h",
     ):
-        # IMPORTANT: the self.params should never be overwritten or mutated from now on
-        # for handling defaults etc, write to other attributes, e.g., self._parama
         self.epochs = epochs
         self.batch_size = batch_size
         self.random_state = random_state
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
-
         self.kernel_width = kernel_width
         self.dropout_rate = dropout_rate
         self.sample_weights_function = sample_weights_function
@@ -193,12 +185,22 @@ class CNN3D(BaseForecaster):
             future_exos,
         ) = self._time_series_to_tabular()
 
-        input_size = past_endos.shape[1]
+        endo_input_size = past_endos.shape[1]
+        exo_input_size = past_exos.shape[2]
+        self._n_exo_features = exo_input_size
         output_size = len(fh.to_numpy())
-        self.model_ = self._build_model(input_size=input_size, output_size=output_size)
+
+        self.model_ = self._build_model(
+            input_size=endo_input_size,
+            exo_input_size=exo_input_size,
+            output_size=output_size,
+            data_freq=self._data_freq,
+        )
 
         self.model_.compile(
-            optimizer=deepcopy(self.optimizer), loss=self.loss, metrics=self._metrics
+            optimizer=deepcopy(self.optimizer),
+            loss=self.loss,
+            metrics=self._metrics,
         )
 
         self.model_.summary()
@@ -213,36 +215,71 @@ class CNN3D(BaseForecaster):
 
         return self
 
-    # todo: implement this, mandatory
-    def _predict(self, fh, X=None, y=None):
-        """Forecast time series at future horizon.
+    def _predict(self, fh, X):
+        """Forecast time series at future horizon."""
+        group_names = self._y.index.get_level_values(0).unique()
+        future_index = self._fh.to_absolute(self.cutoff).to_pandas()
+        all_predictions = [
+            self._predict_single_group(group, X) for group in group_names
+        ]
+        return self._build_prediction_dataframe(
+            all_predictions, group_names, future_index
+        )
 
-        private _predict containing the core logic, called from predict
+    def _predict_single_group(self, group, X):
+        """Predict for a single group."""
+        past_endo, past_exo, future_exo = self._extract_group_data(group, X)
+        y_pred_group = self.model_.predict([past_endo, past_exo, future_exo])
+        return y_pred_group.flatten()
 
-        State required:
-            Requires state to be "fitted".
+    def _extract_group_data(self, group, X):
+        """Extract data for a single group."""
+        import numpy as np  # noqa: PLC0415
 
-        Accesses in self:
-            Fitted model attributes ending in "_"
-            self.cutoff
+        window_size = int(self._window_size // self._data_freq)
+        future_horizon = len(self._fh)
+
+        y_g = self._y.xs(group)
+        past_endo = (
+            y_g.iloc[-window_size:].values.astype(np.float32).reshape(1, window_size, 1)
+        )
+
+        past_exo = None
+        if self._X is not None:
+            X_g = self._X.xs(group)
+            past_exo = (
+                X_g.iloc[-window_size:]
+                .values.astype(np.float32)
+                .reshape(1, window_size, self._n_exo_features)
+            )
+
+        future_exo = None
+        if X is not None:
+            X_future_g = X.xs(group)
+            future_exo = (
+                X_future_g.iloc[:future_horizon]
+                .values.astype(np.float32)
+                .reshape(1, future_horizon, self._n_exo_features)
+            )
+
+        return past_endo, past_exo, future_exo
+
+    def _build_prediction_dataframe(self, predictions, group_names, future_index):
+        """Build multiindex DataFrame from predictions.
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
-            The forecasting horizon with the steps ahead to predict.
-            If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
-            Exogenous time series
-        y : time series in ``sktime`` compatible format, optional (default=None)
-            Historical values of the time series that should be predicted.
-            If not None, global forecasting will be performed.
-            Only pass the historical values not the time points to be predicted.
+        predictions : list of np.ndarray
+            Flattened predictions for each group
+        group_names : Index
+            Group names from multiindex level 0
+        future_index : Index
+            Future time index
 
         Returns
         -------
-        y_pred : sktime time series object
-            should be of the same type as seen in _fit, as in "y_inner_mtype" tag
-            Point predictions
+        pd.DataFrame
+            Predictions with multiindex (group, time)
         """
 
         window_size = self._window_size // self._data_freq
@@ -280,17 +317,13 @@ class CNN3D(BaseForecaster):
         # implement here
 
     def _update(self, y, X=None, update_params=True):
+        """Update model with new data."""
         if not update_params:
             return self
 
-        (
-            past_endos,
-            past_exos,
-            future_endos,
-            future_exos,
-        ) = self._time_series_to_tabular()
-
-        self.model_.summary()
+        (past_endos, past_exos, future_endos, future_exos) = (
+            self._time_series_to_tabular()
+        )
 
         sample_weights = None
         if self.sample_weights_function == "exponential":
@@ -448,138 +481,150 @@ class CNN3D(BaseForecaster):
 
         import keras  # noqa: PLC0415
 
-        endo_past_input: keras.KerasTensor = keras.layers.Input(shape=(input_size, 1))
-        exo_past_input: keras.Layer = keras.layers.Input(
-            shape=(input_size, self._n_exo_features)
+        endo_past_input = keras.layers.Input(shape=(input_size, 1))
+        exo_past_input = keras.layers.Input(shape=(input_size, exo_input_size))
+        exo_future_input = keras.layers.Input(shape=(output_size, exo_input_size))
+
+        # Use input_size for all reshape targets to ensure consistent concatenation
+        reshape_shape = self._get_reshape_target(input_size)
+
+        past_exo_mask = self._build_exo_mask_layer(
+            exo_past_input, input_size, reshape_shape, "past"
         )
-        exo_future_input: keras.Layer = keras.layers.Input(
-            shape=(output_size, self._n_exo_features)
+        endo_mask = self._build_endo_mask_layer(
+            endo_past_input, input_size, reshape_shape
         )
-
-        def exo_mask_layer(exo_input: keras.Layer, name: str = "exo") -> keras.Layer:
-            """Applies a series of dense and dropout layers to exogenous input,
-            followed by reshaping.
-
-            Args:
-            exo_input (keras.Layer): Input layer representing exogenous features.
-                Shape (168, n)
-            name (str): Name for the layer ("past" or "future").
-
-            Returns:
-            keras.Layer: Output layer with shape (7, 24, 1, 1)
-
-            Architecture:
-            - Flattens the input.
-            - Applies dropout.
-            - Passes through three dense layers (500, 250, 168 units).
-            - Applies dropout again.
-            - Reshapes the output to (7, 24, 1, 1).
-            """
-            flattened = keras.layers.Flatten(name=f"{name}_exo_flatten")(exo_input)
-
-            input_dropout = keras.layers.Dropout(
-                rate=self.dropout_rate, name=f"{name}_exo_dropout1"
-            )(flattened)
-
-            first_dense = keras.layers.Dense(
-                units=500, activation="relu", name=f"{name}_exo_dense1"
-            )(input_dropout)
-            second_dense = keras.layers.Dense(
-                units=250, activation="relu", name=f"{name}_exo_dense2"
-            )(first_dense)
-            third_dense = keras.layers.Dense(
-                units=input_size, name=f"{name}_exo_dense3"
-            )(second_dense)
-
-            output_dropout = keras.layers.Dropout(
-                rate=self.dropout_rate, name=f"{name}_exo_dropout2"
-            )(third_dense)
-
-            reshaped_output = keras.layers.Reshape(
-                (7, input_size // 7, 1, 1), name=f"{name}_exo_reshape"
-            )(output_dropout)
-
-            return reshaped_output
-
-        def energy_mask_layer(endo_past_input: keras.Layer) -> keras.Layer:
-            """Reshapes and batch-normalizes the past endogenous data.
-
-            Args:
-                endo_past_input (keras.Layer): Input layer
-                    representing past endogenous data.
-                    Shape (168, 1)
-
-            Returns:
-                keras.Layer: The normalized tensor after reshaping to (7, 24, 1, 1)
-                    and applying batch normalization.
-            """
-            reshaped = keras.layers.Reshape((7, input_size // 7, 1, 1))(endo_past_input)
-            normalized = keras.layers.BatchNormalization()(reshaped)
-
-            return normalized
-
-        def cnn_3d_model(
-            combined_input: keras.Layer,
-        ) -> keras.Layer:
-            """
-            Builds the CNN-3D model.
-
-            Args:
-                combined_input (keras.Layer): Combined reshaped layer.
-                    Shape (7, 24, 3)
-            Returns:
-                keras.Layer: Output layer. Shape (output_size,)
-            """
-            conv_1 = keras.layers.Conv3D(
-                filters=32,
-                kernel_size=(
-                    combined_input.shape[1],
-                    self.kernel_width,
-                    combined_input.shape[3],
-                ),
-                activation="relu",
-                padding="valid",
-            )(combined_input)
-
-            flat = keras.layers.Flatten()(conv_1)
-
-            dense_1 = keras.layers.Dense(units=256, activation="relu")(flat)
-            dense_2 = keras.layers.Dense(units=128, activation="relu")(dense_1)
-            final_dense = keras.layers.Dense(units=64, activation="relu")(dense_2)
-
-            return final_dense
-
-        past_exo_mask = exo_mask_layer(exo_past_input, name="past")
-        endo_mask = energy_mask_layer(endo_past_input)
-        future_exo_mask = exo_mask_layer(exo_future_input, name="future")
+        # Use input_size for all masks to ensure concatenation compatibility
+        # Dense layer will adapt to different input sizes (output_size vs input_size)
+        future_exo_mask = self._build_exo_mask_layer(
+            exo_future_input, input_size, reshape_shape, "future"
+        )
 
         combined_mask = keras.layers.concatenate(
             [past_exo_mask, endo_mask, future_exo_mask], axis=3
         )
-        cnn_3d = cnn_3d_model(combined_mask)
+        cnn_3d = self._build_cnn3d_block(combined_mask, input_size, data_freq)
 
-        flattened = keras.layers.Flatten()(cnn_3d)
+        # lstm_output = self._build_lstm_block(endo_past_input, exo_past_input)
+        # combined = keras.layers.concatenate([cnn_3d, lstm_output])
+        output = self._build_output_block(cnn_3d, output_size)
 
-        dense_1 = keras.layers.Dense(units=256, activation="relu")(flattened)
-        dense_2 = keras.layers.Dense(units=128, activation="relu")(dense_1)
-        final_dense = keras.layers.Dense(units=64, activation="relu")(dense_2)
-
-        output = keras.layers.Dense(units=output_size)(final_dense)
-
-        model = keras.Model(
-            inputs=[endo_past_input, exo_past_input, exo_future_input], outputs=output
+        return keras.Model(
+            inputs=[endo_past_input, exo_past_input, exo_future_input],
+            outputs=output,
         )
 
-        return model
+    def _get_reshape_target(self, dim_size: int) -> tuple:
+        """Compute target reshape dimensions, handling edge cases."""
+        # Use (7, dim_size//7, 1, 1) if divisible by 7, else (1, dim_size, 1, 1)
+        if dim_size >= 7 and dim_size % 7 == 0:
+            return (7, dim_size // 7, 1, 1)
+        else:
+            return (1, dim_size, 1, 1)
+
+    def _build_exo_mask_layer(
+        self,
+        exo_input: "keras.Layer",
+        input_size: int,
+        reshape_target: tuple,
+        name: str,
+    ) -> "keras.Layer":
+        """Build exogenous mask layer."""
+        import keras  # noqa: PLC0415
+
+        flattened = keras.layers.Flatten(name=f"{name}_exo_flatten")(exo_input)
+        dropout1 = keras.layers.Dropout(self.dropout_rate, name=f"{name}_exo_dropout1")(
+            flattened
+        )
+        dense1 = keras.layers.Dense(500, activation="relu", name=f"{name}_exo_dense1")(
+            dropout1
+        )
+        dense2 = keras.layers.Dense(250, activation="relu", name=f"{name}_exo_dense2")(
+            dense1
+        )
+        dense3 = keras.layers.Dense(input_size, name=f"{name}_exo_dense3")(dense2)
+        dropout2 = keras.layers.Dropout(self.dropout_rate, name=f"{name}_exo_dropout2")(
+            dense3
+        )
+        return keras.layers.Reshape(reshape_target, name=f"{name}_exo_reshape")(
+            dropout2
+        )
+
+    def _build_endo_mask_layer(
+        self,
+        endo_input: "keras.Layer",
+        input_size: int,
+        reshape_target: tuple,
+    ) -> "keras.Layer":
+        """Build endogenous mask layer."""
+        import keras  # noqa: PLC0415
+
+        reshaped = keras.layers.Reshape(reshape_target)(endo_input)
+        return keras.layers.BatchNormalization()(reshaped)
+
+    def _build_cnn3d_block(
+        self,
+        combined_input: "keras.Layer",
+        input_size: int,
+        data_freq: "pd.Timedelta",
+    ) -> "keras.Layer":
+        """Build 3D CNN block."""
+        import keras  # noqa: PLC0415
+
+        kernel_w = int((self._kernel_width // data_freq) * 2 + 1)
+        conv = keras.layers.Conv3D(
+            filters=32,
+            kernel_size=(combined_input.shape[1], kernel_w, combined_input.shape[3]),
+            activation="relu",
+            padding="valid",
+        )(combined_input)
+        flat = keras.layers.Flatten()(conv)
+        dense1 = keras.layers.Dense(256, activation="relu")(flat)
+        dense2 = keras.layers.Dense(128, activation="relu")(dense1)
+        return keras.layers.Dense(64, activation="relu")(dense2)
+
+    def _build_lstm_block(
+        self,
+        endo_input: "keras.Layer",
+        exo_input: "keras.Layer",
+    ) -> "keras.Layer":
+        """Build LSTM block."""
+        import keras  # noqa: PLC0415
+
+        combined = keras.layers.Concatenate(axis=-1)([endo_input, exo_input])
+        # Slice to use only the first 80% of the window (or at least 1 timestep)
+        slice_end = max(1, int(combined.shape[1] * 0.8))
+        sliced = combined[:, :slice_end, :]
+        lstm = keras.layers.LSTM(64, return_sequences=False)(sliced)
+        dense1 = keras.layers.Dense(256, activation="relu")(lstm)
+        dense2 = keras.layers.Dense(128, activation="relu")(dense1)
+        return keras.layers.Dense(64, activation="relu")(dense2)
+
+    def _build_output_block(
+        self,
+        combined_input: "keras.Layer",
+        output_size: int,
+    ) -> "keras.Layer":
+        """Build output block."""
+        import keras  # noqa: PLC0415
+
+        dense1 = keras.layers.Dense(256, activation="relu")(combined_input)
+        dense2 = keras.layers.Dense(128, activation="relu")(dense1)
+        dense3 = keras.layers.Dense(64, activation="relu")(dense2)
+        return keras.layers.Dense(output_size)(dense3)
 
     def _fit_model(
         self, past_endos, past_exos, future_exos, future_endos, sample_weights
     ):
-        import pathlib  # noqa: PLC0415q
+        """Train the model with callbacks and validation."""
+        import pathlib  # noqa: PLC0415
         from tempfile import TemporaryDirectory  # noqa: PLC0415
 
         import keras  # noqa: PLC0415
         import tqdm.keras  # noqa: PLC0415
+
+        self._validate_training_data(past_endos, past_exos, future_exos, future_endos)
+        self._setup_gradient_clipping()
 
         with TemporaryDirectory() as tmpdir:
             weights_file = pathlib.Path(tmpdir) / "model.weights.h5"
@@ -598,14 +643,49 @@ class CNN3D(BaseForecaster):
                         save_best_only=True,
                         save_weights_only=True,
                     ),
+                    keras.callbacks.EarlyStopping(
+                        monitor="loss",
+                        patience=5,
+                        restore_best_weights=True,
+                    ),
+                    keras.callbacks.TerminateOnNaN(),
                 ],
             )
             self.model_.load_weights(weights_file)
 
+    def _validate_training_data(self, past_endos, past_exos, future_exos, future_endos):
+        """Validate training data for NaN and Inf values."""
+
+        for data, name in [
+            (past_endos, "past_endos"),
+            (past_exos, "past_exos"),
+            (future_exos, "future_exos"),
+            (future_endos, "future_endos"),
+        ]:
+            if np.isnan(data).any():
+                raise ValueError(f"NaN values found in {name}")
+            if np.isinf(data).any():
+                raise ValueError(f"Inf values found in {name}")
+
+    def _setup_gradient_clipping(self):
+        """Setup gradient clipping for the optimizer."""
+        import keras  # noqa: PLC0415
+
+        if isinstance(self.optimizer, str):
+            optimizer = keras.optimizers.get(self.optimizer)
+        else:
+            optimizer = self.optimizer
+
+        if hasattr(optimizer, "clipvalue"):
+            optimizer.clipvalue = 1.0
+        if hasattr(optimizer, "clipnorm"):
+            optimizer.clipnorm = 1.0
+
+        self.model_.compile(optimizer=optimizer, loss=self.loss, metrics=self._metrics)
+
     def _time_series_to_tabular(
         self,
     ) -> tuple["np.ndarray", "np.ndarray", "np.ndarray", "np.ndarray"]:
-        import contextlib  # noqa: PLC0415
 
         import tqdm  # noqa: PLC0415
         from sktime.split.slidingwindow import SlidingWindowSplitter  # noqa: PLC0415
@@ -621,10 +701,12 @@ class CNN3D(BaseForecaster):
         )
 
         cv_len = cv.get_n_splits(self._y)
+        y_groups = list(self._y.groupby(level=0))
+        group_labels = [label for label, _ in y_groups]
 
-        # Prepare data for CNN model
         past_endos, past_exos = [], []
         future_endos, future_exos = [], []
+
         for train_idx, test_idx in tqdm.tqdm(
             cv.split(self._y),
             total=cv_len,
@@ -632,62 +714,121 @@ class CNN3D(BaseForecaster):
         ):
             past_endo = self._y.iloc[train_idx]
             future_endo = self._y.iloc[test_idx]
+            past_exo = self._X.iloc[train_idx] if self._X is not None else None
+            future_exo = self._X.iloc[test_idx] if self._X is not None else None
 
-            past_index = self._y.iloc[train_idx].index
-            with contextlib.suppress(AttributeError):
-                past_index = past_index.to_timestamp()
-            past_exo = self._extract_temporal_features(past_index)
+            self._extract_group_samples(
+                group_labels,
+                past_endo,
+                future_endo,
+                past_exo,
+                future_exo,
+                past_endos,
+                past_exos,
+                future_endos,
+                future_exos,
+            )
 
-            future_index = self._y.iloc[test_idx].index
-            with contextlib.suppress(AttributeError):
-                future_index = future_index.to_timestamp()
-            future_exo = self._extract_temporal_features(future_index)
-
-            past_endos.append(past_endo)
-            future_endos.append(future_endo)
-            past_exos.append(past_exo)
-            future_exos.append(future_exo)
-
-        # Features
-        past_endos = np.array(past_endos)
-        past_exos = np.array(past_exos)
-        future_exos = np.array(future_exos)
-
-        # Targets
-        future_endos = np.array(future_endos)
-
-        return (
-            past_endos,
-            past_exos,
-            future_endos,
-            future_exos,
+        return self._stack_and_validate_arrays(
+            past_endos, past_exos, future_endos, future_exos, window_length
         )
 
-    def _calculate_sample_weights(self, n_samples: int) -> "np.ndarray":
-        """Calculate sample weights using exponential decay.
-
-        Weights are higher for more recent samples, decaying exponentially
-        towards older samples based on their position in the time series.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of training samples.
-
-        Returns
-        -------
-        np.ndarray
-            Array of sample weights with shape matching the number of training samples.
-        """
+    def _extract_group_samples(
+        self,
+        group_labels,
+        past_endo,
+        future_endo,
+        past_exo,
+        future_exo,
+        past_endos,
+        past_exos,
+        future_endos,
+        future_exos,
+    ):
+        """Extract samples for each group from multiindex data."""
         import numpy as np  # noqa: PLC0415
 
-        # Create exponential decay weights: more recent samples have higher weight
+        for group_label in group_labels:
+            past_endo_group = past_endo.loc[group_label]
+            future_endo_group = future_endo.loc[group_label]
+
+            past_endos.append(past_endo_group.values.astype(np.float32))
+            future_endos.append(future_endo_group.values.astype(np.float32).flatten())
+
+            if past_exo is not None:
+                past_exos.append(past_exo.loc[group_label].values.astype(np.float32))
+            else:
+                past_exos.append(None)
+
+            if future_exo is not None:
+                future_exos.append(
+                    future_exo.loc[group_label].values.astype(np.float32)
+                )
+            else:
+                future_exos.append(None)
+
+    def _stack_and_validate_arrays(
+        self,
+        past_endos,
+        past_exos,
+        future_endos,
+        future_exos,
+        window_length,
+    ):
+        """Stack arrays and validate data integrity."""
+        import numpy as np  # noqa: PLC0415
+
+        past_endos = np.array(past_endos, dtype=np.float32).reshape(
+            -1, window_length, 1
+        )
+        future_endos = np.array(future_endos, dtype=np.float32)
+
+        past_exos = self._pad_exogenous_arrays(past_exos)
+        future_exos = self._pad_exogenous_arrays(future_exos)
+
+        self._validate_array_integrity(past_endos, past_exos, future_endos, future_exos)
+
+        return past_endos, past_exos, future_endos, future_exos
+
+    def _pad_exogenous_arrays(self, exo_arrays):
+        """Pad exogenous arrays with zeros for consistency."""
+        import numpy as np  # noqa: PLC0415
+
+        if not any(x is not None for x in exo_arrays):
+            return None
+
+        padded = []
+        template = next(x for x in exo_arrays if x is not None)
+
+        for x in exo_arrays:
+            if x is not None:
+                padded.append(x)
+            else:
+                padded.append(np.zeros_like(template))
+
+        return np.array(padded, dtype=np.float32)
+
+    def _validate_array_integrity(
+        self, past_endos, past_exos, future_endos, future_exos
+    ):
+        """Validate array integrity for NaN values."""
+        import numpy as np  # noqa: PLC0415
+
+        for data, name in [
+            (past_endos, "past_endos"),
+            (future_endos, "future_endos"),
+            (past_exos, "past_exos"),
+            (future_exos, "future_exos"),
+        ]:
+            if data is not None and np.isnan(data).any():
+                raise ValueError(f"NaN values detected in {name}")
+
+    def _calculate_sample_weights(self, n_samples: int) -> "np.ndarray":
+        """Calculate exponential decay sample weights."""
+        import numpy as np  # noqa: PLC0415
+
         weights = np.exp(self.decay_rate * np.arange(n_samples))
-
-        # Normalize to [0, 1] range
-        weights = weights / weights.max()
-
-        return weights
+        return weights / weights.max()
 
     def _estimate_data_freq(self, y: pd.DataFrame) -> "pd.Timedelta":
         """Estimate the frequency of the time series data.
