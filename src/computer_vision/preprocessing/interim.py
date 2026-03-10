@@ -16,10 +16,13 @@ def interim():
             schema={"datetime": pl.Int32, "id": pl.Int32, "value": pl.Float32},
             low_memory=True,
         )
-        lf = lf.drop_nulls("datetime")
-        lf = lf.set_sorted("datetime", "id")
-        lf = lf.with_columns(
-            pl.from_epoch(pl.col("datetime")).dt.convert_time_zone("America/Montevideo")
-        )
         lf = lf.cast({"id": pl.Int32, "value": pl.Float32})
-        lf.sink_parquet(INTERIM_DATA_DIR / f"{file.stem}.parquet")
+        lf = lf.drop_nulls("datetime")
+        lf = lf.set_sorted(["datetime", "id"])
+        lf = lf.with_columns(
+            pl.from_epoch(pl.col("datetime")).dt.convert_time_zone(
+                "America/Montevideo"
+            ),
+            pl.col("value") * 1000,
+        )
+        lf.sink_parquet(INTERIM_DATA_DIR / f"{file.stem}.parquet", engine="streaming")
