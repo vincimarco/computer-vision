@@ -1,0 +1,19 @@
+general:
+  fh: 24h
+  model: cnn3d
+  seed: 42
+  test_split: 0.2
+
+models:
+  cnn3d:
+    epochs: 200
+    batch_size: 32
+    random_state: 42
+    loss: mse
+    metrics: null
+    optimizer: adam
+    kernel_width: 1h
+    dropout_rate: 0.2
+    sample_weights_function: null
+    decay_rate: 0.01
+    window_size: 168h

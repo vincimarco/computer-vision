@@ -17,6 +17,7 @@ def interim():
             low_memory=True,
         )
         lf = lf.drop_nulls("datetime")
+        lf = lf.set_sorted("datetime", "id")
         lf = lf.with_columns(
             pl.from_epoch(pl.col("datetime")).dt.convert_time_zone("America/Montevideo")
         )

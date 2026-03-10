@@ -13,6 +13,7 @@ def process_customer_batch(customer_ids):
             "value": pl.Float32,
         },
     )
+    lf = lf.set_sorted("datetime", "id")
     lf = lf.filter(pl.col("id").is_in(customer_ids))
     lf = lf.select(["id", "datetime", "value"])
     lf = lf.sort(["id", "datetime"])
