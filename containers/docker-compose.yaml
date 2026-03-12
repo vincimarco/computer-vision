@@ -1,0 +1,77 @@
+services:
+  # Service to generate certificates
+  # cert-gen:
+  #   image: alpine:latest
+  #   volumes:
+  #     - ./certs:/certs
+  #     - ./generate_certs.sh:/generate_certs.sh
+  #   command: /bin/sh -c "chmod +x /generate_certs.sh && /generate_certs.sh"
+  #   networks:
+  #     - energy_net
+
+  # MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    ports:
+      - "8883:8883" # TLS
+    volumes:
+      - ./config/mosquitto:/mosquitto/config
+      - ./certs:/mosquitto/certs
+      - mosquitto-data:/mosquitto/data
+      # - mosquitto-log:/mosquitto/log
+    # depends_on:
+    #   - cert-gen
+    networks:
+      - energy_net
+
+  # Node-RED
+  node-red:
+    image: nodered/node-red:latest
+    volumes:
+      - node-red-data:/data
+      - ./certs:/certs
+    environment:
+      - TZ=America/Montevideo
+    # depends_on:
+    #   - cert-gen
+    networks:
+      - energy_net
+    # Ports for web UI
+    ports:
+      - "1880:1880"
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+      POSTGRES_DB:
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - energy_net
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_USER=
+      - GF_SECURITY_ADMIN_PASSWORD=
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - energy_net
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  node-red-data:
+  postgres-data:
+  grafana-data:
+
+networks:
+  energy_net:
+    driver: bridge
