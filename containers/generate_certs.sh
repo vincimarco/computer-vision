@@ -5,6 +5,9 @@ CA_KEY="certs/ca.key"
 CA_CERT="certs/ca.crt"
 CA_SERIAL="certs/ca.srl"
 
+TEST_CLIENT_KEY="certs/testclient.key"
+TEST_CLIENT_CERT="certs/testclient.crt"
+
 METER_KEY="certs/meter.key"
 METER_CERT="certs/meter.crt"
 
@@ -20,13 +23,22 @@ echo "00" > $CA_SERIAL
 
 # ROOT CA
 echo "Generating Root CA..."
-openssl req -x509 -newkey ed25519 -sha256 -days 365 -nodes \
+openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -nodes \
   -keyout $CA_KEY -out $CA_CERT \
   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=Root Authority"
 
+# TEST CLIENT
+echo $'\nGenerating Test Client Certificate...'
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -keyout $TEST_CLIENT_KEY -out $TEST_CLIENT_CERT \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=client" \
+  -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+openssl x509 -req -in $TEST_CLIENT_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $TEST_CLIENT_CERT -days 365
+
+
 # METER
 echo $'\nGenerating Meter Certificate...'
-openssl req -newkey ed25519 -sha256 -nodes \
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -keyout $METER_KEY -out $METER_CERT \
   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-sn-12345678" \
   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
@@ -34,10 +46,13 @@ openssl x509 -req -in $METER_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERI
 
 # MOSQUITTO
 echo $'\nGenerating Mosquitto Certificate...'
-openssl req -newkey ed25519 -sha256 -nodes \
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -keyout $MOSQUITTO_KEY -out $MOSQUITTO_CERT \
-  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=mosquitto" \
-  -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=localhost" \
+  -reqexts SAN \
+  -extensions SAN \
+  -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=IP:127.0.0.1,DNS:localhost")) \
+  # -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $MOSQUITTO_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL  -out $MOSQUITTO_CERT -days 365
 
 # # 2. Generate Client Certificate
