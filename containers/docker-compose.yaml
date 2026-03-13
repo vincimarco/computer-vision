@@ -16,7 +16,9 @@ services:
       - "8883:8883" # TLS
     volumes:
       - ./config/mosquitto:/mosquitto/config
-      - ./certs:/mosquitto/certs
+      - ./certs/mosquitto.crt:/mosquitto/certs/mosquitto.crt
+      - ./certs/mosquitto.key:/mosquitto/certs/mosquitto.key
+      - ./certs/ca.crt:/mosquitto/certs/ca.crt
       - mosquitto-data:/mosquitto/data
       # - mosquitto-log:/mosquitto/log
     # depends_on:
