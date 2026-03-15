@@ -479,9 +479,23 @@ class CNN3D(BaseForecaster):
                 future_exos,
             )
 
-        return self._stack_and_validate_arrays(
-            past_endos, past_exos, future_endos, future_exos, window_length
+        past_endos, past_exos, future_endos, future_exos = (
+            self._stack_and_validate_arrays(
+                past_endos, past_exos, future_endos, future_exos, window_length
+            )
         )
+
+        print(
+            f"Transformed {len(past_endos)} samples with window size {window_length} and step size {step_length}"
+        )
+        print(
+            f"Past endos shape: {past_endos.shape}"
+            f"\nPast exos shape: {past_exos.shape if past_exos is not None else 'None'}"
+            f"\nFuture endos shape: {future_endos.shape}"
+            f"\nFuture exos shape: {future_exos.shape if future_exos is not None else 'None'}"
+        )
+
+        return past_endos, past_exos, future_endos, future_exos
 
     def _extract_group_samples(
         self,
@@ -528,9 +542,7 @@ class CNN3D(BaseForecaster):
         """Stack arrays and validate data integrity."""
         import numpy as np  # noqa: PLC0415
 
-        past_endos = np.array(past_endos, dtype=np.float32).reshape(
-            -1, window_length, 1
-        )
+        past_endos = np.array(past_endos, dtype=np.float32)
         future_endos = np.array(future_endos, dtype=np.float32)
 
         past_exos = self._pad_exogenous_arrays(past_exos)
@@ -584,8 +596,8 @@ class CNN3D(BaseForecaster):
     def _data_freq(self) -> "pd.Timedelta":
         """Infer data frequency from the first group's time index."""
         import pandas as pd  # noqa: PLC0415
-        from pandas.tseries.frequencies import to_offset  # noqa: PLC0415
 
         first_group = self._y.index.get_level_values(0).unique()[0]
-        freq_str = pd.infer_freq(self._y.xs(first_group).index)
-        return pd.Timedelta(to_offset(freq_str))
+        first_group_index = self._y.xs(first_group).index
+        freq = pd.to_timedelta(np.diff(first_group_index).min())
+        return freq

@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 from sktime.forecasting.compose import ForecastingPipeline
 from sktime.transformations.compose import ColumnEnsembleTransformer, Id
 from sktime.transformations.series.date import DateTimeFeatures
+from sktime.transformations.series.impute import Imputer
 
 from computer_vision.model.cnn3d import CNN3D
 from computer_vision.transformer.cyclical_encoding import CyclicalEncodingTransformer
@@ -33,7 +34,7 @@ def create_cnn3d_forecaster(
     window_size: str,
 ) -> ForecastingPipeline:
 
-    _original_features_transformer = Id()
+    # _original_features_transformer = Id()
 
     _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
         [
@@ -47,7 +48,9 @@ def create_cnn3d_forecaster(
         feature_names_out="original",
     )
 
-    _X_transformer = _original_features_transformer + _dtfeats_transformer
+    X_transformers = _dtfeats_transformer
+
+    y_transformers = Imputer()
 
     forecaster = CNN3D(
         epochs=epochs,
@@ -63,5 +66,5 @@ def create_cnn3d_forecaster(
         window_size=window_size,
     )
 
-    pipeline = _X_transformer ** (forecaster)
+    pipeline = X_transformers ** (y_transformers * forecaster)
     return pipeline
