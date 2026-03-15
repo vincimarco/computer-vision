@@ -26,7 +26,14 @@ def load_customer_time_series(
     start_date: datetime | None = None,
     end_date: datetime | None = None,
 ) -> pd.DataFrame:
-    lf = pl.scan_parquet(FINAL_DATA_DIR / "customers_*.parquet")
+    lf = pl.scan_parquet(
+        FINAL_DATA_DIR / "customers_*.parquet",
+        schema={
+            "datetime": pl.Datetime("us", "America/Montevideo"),
+            "id": pl.Int32,
+            "value": pl.Float32,
+        },
+    )
 
     lf = lf.filter(pl.col("id").is_in(customer_ids))
 
@@ -57,25 +64,44 @@ def load_customers(customer_ids: list[int]) -> pd.DataFrame:
 
 
 def get_customer_ids(
-    by_tension_class: Literal[
-        "BT 230 V",
-        "BT 400 V",
-        "MT 6.4 KV",
-        "MT 15 KV",
-        "MT 22 KV",
-        "MT 31.5 KV",
-        "MT 63 KV",
-        "*",
-        None,
-    ] = "*",
+    by_tension_class: list[
+        Literal[
+            "BT 230 V",
+            "BT 400 V",
+            "MT 6.4 KV",
+            "MT 15 KV",
+            "MT 22 KV",
+            "MT 31.5 KV",
+            "MT 63 KV",
+            None,
+        ]
+    ]
+    | Literal["*"] = "*",
 ) -> list[int]:
     lf = pl.scan_parquet(FINAL_DATA_DIR / "customers.parquet")
 
-    if by_tension_class is None:
-        lf = lf.filter(pl.any_horizontal(pl.col("tension").is_null()))
+    if by_tension_class == "*":
+        by_tension_class = [
+            "BT 230 V",
+            "BT 400 V",
+            "MT 6.4 KV",
+            "MT 15 KV",
+            "MT 22 KV",
+            "MT 31.5 KV",
+            "MT 63 KV",
+            None,
+        ]
 
-    if by_tension_class != "*" and by_tension_class is not None:
-        lf = lf.filter(pl.col("tension") == by_tension_class)
+    predicates = []
+    for tension_class in by_tension_class:
+        if tension_class is None:
+            predicates.append(pl.col("tension").is_null())
+
+        if tension_class != "*" and tension_class is not None:
+            predicates.append(pl.col("tension") == tension_class)
+
+    predicates = pl.any_horizontal(predicates)
+    lf = lf.filter(predicates)
 
     lf = lf.select("customer_id").unique().sort("customer_id")
 
