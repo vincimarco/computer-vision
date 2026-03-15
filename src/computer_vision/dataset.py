@@ -13,8 +13,10 @@ def load_dataset(
     end_date: datetime | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     y = load_customer_time_series(customer_ids, start_date, end_date)
+    y = y.groupby("id").apply(lambda g: g.loc[g.name].asfreq("15min"))
 
-    X = load_customers(customer_ids)
+    X = pd.DataFrame(index=y.index)
+    X = X.groupby("id").apply(lambda g: g.loc[g.name].asfreq("15min"))
 
     return X, y
 
@@ -54,9 +56,29 @@ def load_customers(customer_ids: list[int]) -> pd.DataFrame:
 # ---------------------------------------------------------------------------- #
 
 
-def get_customer_ids() -> list[int]:
+def get_customer_ids(
+    by_tension_class: Literal[
+        "BT 230 V",
+        "BT 400 V",
+        "MT 6.4 KV",
+        "MT 15 KV",
+        "MT 22 KV",
+        "MT 31.5 KV",
+        "MT 63 KV",
+        "*",
+        None,
+    ] = "*",
+) -> list[int]:
     lf = pl.scan_parquet(FINAL_DATA_DIR / "customers.parquet")
-    lf = lf.select("customer_id").unique()
+
+    if by_tension_class is None:
+        lf = lf.filter(pl.any_horizontal(pl.col("tension").is_null()))
+
+    if by_tension_class != "*" and by_tension_class is not None:
+        lf = lf.filter(pl.col("tension") == by_tension_class)
+
+    lf = lf.select("customer_id").unique().sort("customer_id")
+
     return lf.collect().to_series().to_list()
 
 
