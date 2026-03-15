@@ -17,3 +17,10 @@ def final():
     from .preprocessing.final import final
 
     final()
+
+
+@app.command()
+def train():
+    from .train import train
+
+    train()
