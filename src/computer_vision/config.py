@@ -15,6 +15,9 @@ INTERIM_DATA_DIR.mkdir(parents=True, exist_ok=True)
 FINAL_DATA_DIR = pathlib.Path("data/3.final/ECDUY")
 FINAL_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+EVAL_DIR = pathlib.Path("eval")
+EVAL_DIR.mkdir(parents=True, exist_ok=True)
+
 TRAIN_OUTPUT_DIR = pathlib.Path("output/train")
 TRAIN_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
