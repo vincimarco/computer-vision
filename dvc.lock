@@ -36,3 +36,17 @@ stages:
       md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
       size: 21240900911
       nfiles: 112
+  plot:
+    cmd: uv run computer-vision plot
+    deps:
+    - path: ./data/3.final/ECDUY/
+      hash: md5
+      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
+      size: 21240900911
+      nfiles: 112
+    outs:
+    - path: ./imgs/
+      hash: md5
+      md5: 6b670e237b1b24ef7b66e038f4f4f6f1.dir
+      size: 6268709092
+      nfiles: 999
