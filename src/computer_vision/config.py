@@ -21,6 +21,9 @@ TRAIN_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 TEST_OUTPUT_DIR = pathlib.Path("output/test")
 TEST_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+IMGS_DIR = pathlib.Path("imgs")
+IMGS_DIR.mkdir(parents=True, exist_ok=True)
+
 # ---------------------------------------------------------------------------- #
 #                                  PARAMS.YAML                                 #
 # ---------------------------------------------------------------------------- #

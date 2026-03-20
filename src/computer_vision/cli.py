@@ -24,3 +24,10 @@ def train():
     from .train import train
 
     train()
+
+
+@app.command()
+def plot():
+    from .plot import plot
+
+    plot()
