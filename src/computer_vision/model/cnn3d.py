@@ -123,7 +123,13 @@ class CNN3D(BaseForecaster):
     def _predict(self, fh, X):
         """Forecast time series at future horizon."""
         group_names = self._y.index.get_level_values(0).unique()
-        future_index = self._fh.to_absolute(self.cutoff).to_pandas()
+        cutoff = self.cutoff
+        if cutoff.freq is None:
+            cutoff.freq = self._data_freq
+        print(f"Forecasting for cutoff: {cutoff}")
+        print(f"Forecasting Horizon: {self._fh}")
+        print(f"Frequency: {self._fh.freq}")
+        future_index = self._fh.to_absolute(cutoff).to_pandas()
         all_predictions = [
             self._predict_single_group(group, X) for group in group_names
         ]
@@ -439,12 +445,12 @@ class CNN3D(BaseForecaster):
         self,
     ) -> tuple["np.ndarray", "np.ndarray", "np.ndarray", "np.ndarray"]:
         """Convert multiindex time series to tabular format for model training."""
-        import pandas as pd  # noqa: PLC0415
         import tqdm  # noqa: PLC0415
         from sktime.split.slidingwindow import SlidingWindowSplitter  # noqa: PLC0415
 
         window_length = int(self._window_size // self._data_freq)
-        step_length = int(pd.Timedelta("1h") // self._data_freq)
+        # step_length = int(pd.Timedelta("1h") // self._data_freq)
+        step_length = 1
 
         cv = SlidingWindowSplitter(
             window_length=window_length, fh=self._fh, step_length=step_length
@@ -457,6 +463,9 @@ class CNN3D(BaseForecaster):
         past_endos, past_exos = [], []
         future_endos, future_exos = [], []
 
+        print(self._y)
+
+        print_first_shape = True
         for train_idx, test_idx in tqdm.tqdm(
             cv.split(self._y),
             total=cv_len,
@@ -466,6 +475,15 @@ class CNN3D(BaseForecaster):
             future_endo = self._y.iloc[test_idx]
             past_exo = self._X.iloc[train_idx] if self._X is not None else None
             future_exo = self._X.iloc[test_idx] if self._X is not None else None
+
+            if print_first_shape:
+                print(
+                    f"Initial shapes - past_endo: {past_endo.shape}, "
+                    f"future_endo: {future_endo.shape}, "
+                    f"past_exo: {past_exo.shape if past_exo is not None else 'None'}, "
+                    f"future_exo: {future_exo.shape if future_exo is not None else 'None'}"
+                )
+                print_first_shape = False
 
             self._extract_group_samples(
                 group_labels,
@@ -542,7 +560,9 @@ class CNN3D(BaseForecaster):
         """Stack arrays and validate data integrity."""
         import numpy as np  # noqa: PLC0415
 
-        past_endos = np.array(past_endos, dtype=np.float32)
+        past_endos = np.array(past_endos, dtype=np.float32).reshape(
+            -1, window_length, 1
+        )
         future_endos = np.array(future_endos, dtype=np.float32)
 
         past_exos = self._pad_exogenous_arrays(past_exos)

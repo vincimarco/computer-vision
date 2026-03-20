@@ -1,28 +1,36 @@
-from sktime.split.fh import ForecastingHorizonSplitter
+from rich.console import Console
+from sktime.split.temporal_train_test_split import temporal_train_test_split
 from sktime.utils.plotting import plot_series
 
 from .config import params
-from .dataset import get_customer_ids, load_dataset
+from .dataset import load_dataset
 from .forecasters import create_forecaster
 
 
 def train():
-    customer_ids = get_customer_ids(
-        [
-            "BT 400 V",
-        ]
+    console = Console()
+
+    with console.status("Loading dataset..."):
+        customer_ids = params["general"]["customer_ids"]
+        X, y = load_dataset(customer_ids=customer_ids)
+    console.print("Dataset loaded!")
+    console.print(f"X shape: {X.shape}, y shape: {y.shape}")
+
+    with console.status("Splitting dataset..."):
+        y_train, y_test, X_train, X_test = temporal_train_test_split(
+            y, X, test_size=params["general"]["test_size"]
+        )
+    console.print("Dataset split!")
+
+    console.print(
+        f"y_train shape: {y_train.shape}, y_test shape: {y_test.shape}"
+        f", X_train shape: {X_train.shape}, X_test shape: {X_test.shape}"
     )
-    X, y = load_dataset([3], None, None)
 
     fh = list(range(1, 25 * 4))
-    cv = ForecastingHorizonSplitter(fh=fh)
-
-    for train_idx, test_idx in cv.split(y):
-        X_train, y_train = X.iloc[train_idx], y.iloc[train_idx]
-        X_test, y_test = X.iloc[test_idx], y.iloc[test_idx]
 
     forecaster = create_forecaster(
-        params["general"]["model"], params["models"]["cnn3d"]
+        params["general"]["model"], params["models"][params["general"]["model"]]
     )
 
     forecaster.fit(y=y_train, X=X_train, fh=fh)

@@ -13,10 +13,7 @@ def load_dataset(
     end_date: datetime | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     y = load_customer_time_series(customer_ids, start_date, end_date)
-    y = y.groupby("id").apply(lambda g: g.loc[g.name].asfreq("15min"))
-
     X = pd.DataFrame(index=y.index)
-    X = X.groupby("id").apply(lambda g: g.loc[g.name].asfreq("15min"))
 
     return X, y
 
@@ -44,6 +41,7 @@ def load_customer_time_series(
 
     df = lf.collect(engine="streaming").to_pandas()
     df = df.set_index(["id", "datetime"])
+    df.index.levels[-1].freq = df.index.levels[-1].inferred_freq
     return df
 
 
