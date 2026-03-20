@@ -44,9 +44,13 @@ stages:
       md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
       size: 21240900911
       nfiles: 112
+    - path: ./src/computer_vision/plot.py
+      hash: md5
+      md5: 0f413fc59d718d44db6c97edaf02bf93
+      size: 1028
     outs:
     - path: ./imgs/
       hash: md5
-      md5: 6b670e237b1b24ef7b66e038f4f4f6f1.dir
+      md5: baebd21571df5d8251cd7ba033e74490.dir
       size: 6268709092
       nfiles: 999

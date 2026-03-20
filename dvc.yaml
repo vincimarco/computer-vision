@@ -19,5 +19,6 @@ stages:
     cmd: uv run computer-vision plot
     deps:
       - ./data/3.final/ECDUY/
+      - ./src/computer_vision/plot.py
     outs:
       - ./imgs/
