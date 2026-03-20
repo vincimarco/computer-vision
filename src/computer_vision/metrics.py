@@ -16,8 +16,8 @@ class RootMeanSquaredError(MeanSquaredError):
             multioutput=multioutput,
             multilevel=multilevel,
             by_index=by_index,
-            square_root=True,
         )
+        self.square_root = True
 
 
 metrics = {
