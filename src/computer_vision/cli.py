@@ -27,6 +27,13 @@ def train():
 
 
 @app.command()
+def evaluate():
+    from .evaluate import eval
+
+    eval()
+
+
+@app.command()
 def plot():
     from .plot import plot
 
