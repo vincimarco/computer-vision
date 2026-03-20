@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
     import keras
 from sktime.forecasting.compose import ForecastingPipeline
+from sktime.forecasting.naive import NaiveForecaster
 from sktime.transformations.compose import ColumnEnsembleTransformer, Id
 from sktime.transformations.series.date import DateTimeFeatures
 from sktime.transformations.series.impute import Imputer
@@ -16,6 +17,9 @@ from computer_vision.transformer.cyclical_encoding import CyclicalEncodingTransf
 def create_forecaster(forecaster_name: str, params: dict) -> ForecastingPipeline:
     if forecaster_name == "cnn3d":
         return create_cnn3d_forecaster(**params)
+
+    if forecaster_name == "naive":
+        return create_naive_forecaster(**params)
 
     raise ValueError(f"Unknown forecaster: {forecaster_name}")
 
@@ -67,4 +71,10 @@ def create_cnn3d_forecaster(
     )
 
     pipeline = X_transformers ** (y_transformers * forecaster)
+    return pipeline
+
+
+def create_naive_forecaster(sp: int) -> ForecastingPipeline:
+    forecaster = NaiveForecaster(strategy="last", sp=sp)
+    pipeline = ForecastingPipeline([forecaster])
     return pipeline
