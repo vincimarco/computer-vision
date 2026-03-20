@@ -22,3 +22,18 @@ stages:
       - ./src/computer_vision/plot.py
     outs:
       - ./imgs/
+
+  evaluate:
+    cmd: uv run computer-vision evaluate
+    params:
+      - general
+      - models.${general.model}
+
+    deps:
+      - ./data/3.final/ECDUY/
+      - ./src/computer_vision/evaluate.py
+      - ./src/computer_vision/metrics.py
+    # outs:
+    #   - ./evaluate/model.pkl
+    metrics:
+      - ./eval/metrics.yaml

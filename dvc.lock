@@ -54,3 +54,45 @@ stages:
       md5: baebd21571df5d8251cd7ba033e74490.dir
       size: 6268709092
       nfiles: 999
+  evaluate:
+    cmd: uv run computer-vision evaluate
+    deps:
+    - path: ./data/3.final/ECDUY/
+      hash: md5
+      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
+      size: 21240900911
+      nfiles: 112
+    - path: ./src/computer_vision/evaluate.py
+      hash: md5
+      md5: 95a9be5185192446c1860e2e2eb2f8fe
+      size: 2417
+    - path: ./src/computer_vision/metrics.py
+      hash: md5
+      md5: 9a7b12a509eb45c5298e89634e2a3aff
+      size: 1528
+    params:
+      params.yaml:
+        general:
+          fh: 24h
+          model: cnn3d
+          seed: 42
+          cutoff: '2020-11-01T00:00:00-03:00'
+          customer_ids:
+          - 115138
+        models.cnn3d:
+          epochs: 20
+          batch_size: 32
+          random_state: 42
+          loss: mse
+          metrics:
+          optimizer: adam
+          kernel_width: 1h
+          dropout_rate: 0.2
+          sample_weights_function:
+          decay_rate: 0.01
+          window_size: 168h
+    outs:
+    - path: ./eval/metrics.yaml
+      hash: md5
+      md5: ca1982ee6d499db553fcfe76dea26438
+      size: 315
