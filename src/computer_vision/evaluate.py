@@ -2,7 +2,7 @@ import pandas as pd
 import yaml
 from rich.console import Console
 from sktime.forecasting.model_evaluation import evaluate
-from sktime.split.expandingcutoff import ExpandingCutoffSplitter
+from sktime.split.expandingwindow import ExpandingWindowSplitter
 
 from computer_vision.utils import create_fh
 
@@ -18,22 +18,33 @@ def eval():
     with console.status("Loading dataset..."):
         customer_ids = params["general"]["customer_ids"]
         X, y = load_dataset(customer_ids=customer_ids)
-        X = X.xs(customer_ids[0])  # pyright: ignore[reportGeneralTypeIssues]
-        y = y.xs(customer_ids[0])  # pyright: ignore[reportGeneralType
     console.print("Dataset loaded!")
     console.print(f"X shape: {X.shape}, y shape: {y.shape}")
 
     fh = create_fh(params["general"]["fh"])
+
     forecaster = create_forecaster(
         params["general"]["model"], params["models"][params["general"]["model"]]
     )
-    cutoff = pd.to_datetime(params["general"]["cutoff"], format="ISO8601")
+
+    cutoff_str: str = params["general"]["cutoff"]
+    cutoff = pd.to_datetime(cutoff_str, format="ISO8601")
+    initial_window = cutoff - pd.to_datetime("2019-01-01T00:00:00-03:00")
+    initial_window = initial_window // pd.Timedelta(
+        "15min"
+    )  # convert to number of days
+
     console.print(f"Using cutoff: {cutoff} and fh: {fh}")
-    cv = ExpandingCutoffSplitter(
-        cutoff=cutoff,
+    cv = ExpandingWindowSplitter(
         fh=fh,
+        initial_window=initial_window,
         step_length=1,
     )
+    # cv = ExpandingCutoffSplitter(
+    #     cutoff=cutoff,
+    #     fh=fh,
+    #     step_length=1,
+    # )
 
     results = evaluate(
         forecaster=forecaster,
