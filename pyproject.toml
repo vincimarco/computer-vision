@@ -24,6 +24,7 @@ dependencies = [
     "statsmodels>=0.14.6",
     "tensorflow[and-cuda]>=2.20.0",
     "tqdm>=4.67.3",
+    "xgboost>=3.2.0",
 ]
 
 [project.scripts]
