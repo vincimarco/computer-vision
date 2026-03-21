@@ -1,6 +1,6 @@
 general:
   fh: 24h
-  model: cnn3d
+  model: darts_xgb
   seed: 42
   cutoff: "2020-09-01T00:00:00-03:00"
   step: 96
@@ -24,5 +24,10 @@ models:
     decay_rate: 0.01
     window_size: 168h
 
+  darts_xgb:
+    lags: 96
+    output_chunk_length: 96
+    random_state: 42
+
   naive:
-    sp: 96
+    sp: 1

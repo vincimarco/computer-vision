@@ -6,10 +6,13 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "cyclopts>=4.6.0",
+    "darts>=0.42.1",
     "dvc>=3.66.1",
     "dvclive>=3.49.0",
+    "holidays>=0.93",
     "ipykernel>=7.2.0",
     "keras>=3.13.2",
+    "loguru>=0.7.3",
     "matplotlib>=3.10.8",
     "nbformat>=5.10.4",
     "pandas>=2.3.3",
@@ -22,6 +25,7 @@ dependencies = [
     "statsmodels>=0.14.6",
     "tensorflow[and-cuda]>=2.20.0",
     "tqdm>=4.67.3",
+    "xgboost>=3.2.0",
 ]
 
 [project.scripts]
