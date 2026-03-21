@@ -2,7 +2,7 @@ general:
   fh: 24h
   model: cnn3d
   seed: 42
-  cutoff: "2020-11-01T00:00:00-03:00"
+  cutoff: "2020-09-01T00:00:00-03:00"
   step: 96
   customer_ids:
     # MT 6.4 KV
