@@ -33,17 +33,18 @@ def eval():
     initial_window = initial_window // pd.Timedelta(
         "15min"
     )  # convert to number of days
+    step = params["general"]["step"]
 
     console.print(f"Using cutoff: {cutoff} and fh: {fh}")
     cv = ExpandingWindowSplitter(
         fh=fh,
         initial_window=initial_window,
-        step_length=1,
+        step_length=step,
     )
     # cv = ExpandingCutoffSplitter(
     #     cutoff=cutoff,
     #     fh=fh,
-    #     step_length=1,
+    #     step_length=step,
     # )
 
     results = evaluate(
