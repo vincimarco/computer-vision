@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
     import keras
 from sktime.forecasting.compose import ForecastingPipeline
+from sktime.forecasting.darts import DartsXGBModel
 from sktime.forecasting.naive import NaiveForecaster
 from sktime.transformations.compose import ColumnEnsembleTransformer, Id
 from sktime.transformations.series.date import DateTimeFeatures
@@ -20,6 +21,9 @@ def create_forecaster(forecaster_name: str, params: dict) -> ForecastingPipeline
 
     if forecaster_name == "naive":
         return create_naive_forecaster(**params)
+
+    if forecaster_name == "darts_xgb":
+        return create_darts_xgb_forecaster(**params)
 
     raise ValueError(f"Unknown forecaster: {forecaster_name}")
 
@@ -76,5 +80,19 @@ def create_cnn3d_forecaster(
 
 def create_naive_forecaster(sp: int) -> ForecastingPipeline:
     forecaster = NaiveForecaster(strategy="last", sp=sp)
+    pipeline = ForecastingPipeline([forecaster])
+    return pipeline
+
+
+def create_darts_xgb_forecaster(
+    lags: int,
+    output_chunk_length: int,
+    random_state: int,
+) -> ForecastingPipeline:
+    forecaster = DartsXGBModel(
+        lags=lags,
+        output_chunk_length=output_chunk_length,
+        random_state=random_state,
+    )
     pipeline = ForecastingPipeline([forecaster])
     return pipeline

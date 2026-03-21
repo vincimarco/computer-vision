@@ -24,5 +24,10 @@ models:
     decay_rate: 0.01
     window_size: 168h
 
+  darts_xgb:
+    lags: 672
+    output_chunk_length: 96
+    random_state: 42
+
   naive:
     sp: 96
