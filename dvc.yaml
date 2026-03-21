@@ -33,7 +33,7 @@ stages:
       - ./data/3.final/ECDUY/
       - ./src/computer_vision/evaluate.py
       - ./src/computer_vision/metrics.py
-    # outs:
-    #   - ./evaluate/model.pkl
+    outs:
+      - ./eval/out/
     metrics:
       - ./eval/metrics.yaml

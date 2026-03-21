@@ -67,6 +67,9 @@ def eval():
     console.print("Evaluation results:")
     console.print(metrics_results)
 
+    OUTPUT_DIR = EVAL_DIR / "out"
+    OUTPUT_DIR.mkdir(exist_ok=True)
+
     y_train = results["y_train"][0]
     y_test = results["y_test"]
     y_pred = results["y_pred"]
@@ -107,4 +110,4 @@ def eval():
                 line=dict(color="#edf8b1"),
             )
 
-        fig.write_html(EVAL_DIR / f"prediction_{id}.html")
+        fig.write_html(OUTPUT_DIR / f"prediction_{id}.html")
