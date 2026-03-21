@@ -6,8 +6,10 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "cyclopts>=4.6.0",
+    "darts>=0.42.1",
     "dvc>=3.66.1",
     "dvclive>=3.49.0",
+    "holidays>=0.93",
     "ipykernel>=7.2.0",
     "keras>=3.13.2",
     "matplotlib>=3.10.8",
