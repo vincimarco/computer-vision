@@ -25,9 +25,9 @@ models:
     window_size: 168h
 
   darts_xgb:
-    lags: 672
+    lags: 96
     output_chunk_length: 96
     random_state: 42
 
   naive:
-    sp: 96
+    sp: 1
