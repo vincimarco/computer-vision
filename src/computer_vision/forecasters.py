@@ -89,10 +89,26 @@ def create_darts_xgb_forecaster(
     output_chunk_length: int,
     random_state: int,
 ) -> ForecastingPipeline:
+
+    _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
+        [
+            ("id", Id(), ["year"]),
+            (
+                "cyclical",
+                CyclicalEncodingTransformer(),
+                ["month_of_year", "day_of_week", "hour_of_day"],
+            ),
+        ],
+        feature_names_out="original",
+    )
+
+    X_transformers = _dtfeats_transformer
+
+    y_transformers = Imputer()
     forecaster = DartsXGBModel(
         lags=lags,
         output_chunk_length=output_chunk_length,
         random_state=random_state,
     )
-    pipeline = ForecastingPipeline([forecaster])
+    pipeline = X_transformers ** (y_transformers * forecaster)
     return pipeline
