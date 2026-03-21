@@ -1,4 +1,5 @@
 import pandas as pd
+import plotly.graph_objects as go
 import yaml
 from rich.console import Console
 from sktime.forecasting.model_evaluation import evaluate
@@ -41,11 +42,6 @@ def eval():
         initial_window=initial_window,
         step_length=step,
     )
-    # cv = ExpandingCutoffSplitter(
-    #     cutoff=cutoff,
-    #     fh=fh,
-    #     step_length=step,
-    # )
 
     results = evaluate(
         forecaster=forecaster,
@@ -71,11 +67,44 @@ def eval():
     console.print("Evaluation results:")
     console.print(metrics_results)
 
-    # for customer_id in y_test.index.get_level_values(0).unique():
-    #     fig, ax = plot_series(
-    #         # y_train.xs(customer_id),
-    #         y_test.xs(customer_id),
-    #         y_pred.xs(customer_id),
-    #         labels=["y_test", "y_pred"],
-    #     )
-    #     fig.savefig(EVAL_DIR / f"prediction_{customer_id}.png")
+    y_train = results["y_train"][0]
+    y_test = results["y_test"]
+    y_pred = results["y_pred"]
+
+    for id in customer_ids:
+        title = f"Customer {id} - Forecasts"
+        fig = go.Figure()
+        fig.update_layout(
+            {"title": title, "xaxis_title": "Time", "yaxis_title": "Consumption (Wh)"}
+        )
+
+        y_train_id = y_train.xs(id)
+
+        fig.add_scatter(
+            x=y_train_id.index,
+            y=y_train_id["value"],
+            mode="lines",
+            name="y_train",
+            line=dict(color="#2c7fb8"),
+        )
+
+        y_test_id = y_test.apply(lambda x: x.xs(id))
+        y_pred_id = y_pred.apply(lambda x: x.xs(id))
+
+        for test, pred in zip(y_test_id, y_pred_id):
+            fig.add_scatter(
+                x=test.index,
+                y=test["value"],
+                mode="lines",
+                name="y_test",
+                line=dict(color="#7fcdbb"),
+            )
+            fig.add_scatter(
+                x=pred.index,
+                y=pred["value"],
+                mode="lines",
+                name="y_pred",
+                line=dict(color="#edf8b1"),
+            )
+
+        fig.write_html(EVAL_DIR / f"prediction_{id}.html")
