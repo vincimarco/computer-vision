@@ -74,7 +74,7 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: cnn3d
+          model: darts_xgb
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
@@ -84,20 +84,12 @@ stages:
           - 50176
           - 7001
           - 18052
-        models.cnn3d:
-          epochs: 20
-          batch_size: 32
+        models.darts_xgb:
+          lags: 672
+          output_chunk_length: 96
           random_state: 42
-          loss: mse
-          metrics:
-          optimizer: adam
-          kernel_width: 1h
-          dropout_rate: 0.2
-          sample_weights_function:
-          decay_rate: 0.01
-          window_size: 168h
     outs:
     - path: ./eval/metrics.yaml
       hash: md5
-      md5: 793f12274519ee65d0a177485e6dacb6
+      md5: 1532f2545e253df17b23b9511eafffa3
       size: 321
