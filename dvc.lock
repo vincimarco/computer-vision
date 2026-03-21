@@ -64,8 +64,12 @@ stages:
       nfiles: 112
     - path: ./src/computer_vision/evaluate.py
       hash: md5
-      md5: 64e888b70b2167766808dacbaf9c5274
-      size: 2460
+      md5: dca4713b0dccaa35ff98e46e700f3beb
+      size: 5305
+    - path: ./src/computer_vision/forecasters.py
+      hash: md5
+      md5: 2ab41e7d83bb1e6959cc9ed3cabe8c42
+      size: 3299
     - path: ./src/computer_vision/metrics.py
       hash: md5
       md5: 9a7b12a509eb45c5298e89634e2a3aff
@@ -85,11 +89,16 @@ stages:
           - 7001
           - 18052
         models.darts_xgb:
-          lags: 672
+          lags: 96
           output_chunk_length: 96
           random_state: 42
     outs:
     - path: ./eval/metrics.yaml
       hash: md5
-      md5: 1532f2545e253df17b23b9511eafffa3
+      md5: 42ad306508a962030e694317b9e4b1bd
       size: 321
+    - path: ./eval/out/
+      hash: md5
+      md5: fb729c129080a5ac6b74ff2dea3603da.dir
+      size: 35907429
+      nfiles: 5
