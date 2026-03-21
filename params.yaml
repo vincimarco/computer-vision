@@ -2,12 +2,17 @@ general:
   fh: 24h
   model: cnn3d
   seed: 42
-  cutoff: '2020-11-01T00:00:00-03:00'
+  cutoff: "2020-09-01T00:00:00-03:00"
+  step: 96
   customer_ids:
-  - 115138
+    - 115138
+    - 3904
+    - 50176
+    - 7001
+    - 18052
 models:
   cnn3d:
-    epochs: 20
+    epochs: 200
     batch_size: 32
     random_state: 42
     loss: mse

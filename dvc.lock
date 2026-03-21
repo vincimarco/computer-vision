@@ -64,8 +64,8 @@ stages:
       nfiles: 112
     - path: ./src/computer_vision/evaluate.py
       hash: md5
-      md5: 95a9be5185192446c1860e2e2eb2f8fe
-      size: 2417
+      md5: 64e888b70b2167766808dacbaf9c5274
+      size: 2460
     - path: ./src/computer_vision/metrics.py
       hash: md5
       md5: 9a7b12a509eb45c5298e89634e2a3aff
@@ -76,9 +76,14 @@ stages:
           fh: 24h
           model: cnn3d
           seed: 42
-          cutoff: '2020-11-01T00:00:00-03:00'
+          cutoff: '2020-09-01T00:00:00-03:00'
+          step: 96
           customer_ids:
           - 115138
+          - 3904
+          - 50176
+          - 7001
+          - 18052
         models.cnn3d:
           epochs: 20
           batch_size: 32
@@ -94,5 +99,5 @@ stages:
     outs:
     - path: ./eval/metrics.yaml
       hash: md5
-      md5: ca1982ee6d499db553fcfe76dea26438
-      size: 315
+      md5: 793f12274519ee65d0a177485e6dacb6
+      size: 321
