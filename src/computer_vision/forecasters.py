@@ -133,6 +133,7 @@ def create_lstm_forecaster(
     loss: "str | keras.Metric",
     broadcasting: bool,
     optimizer: "str | keras.optimizers.Optimizer",
+    max_steps: int,
 ) -> ForecastingPipeline:
 
     import neuralforecast.losses.pytorch as nflosses
@@ -181,6 +182,7 @@ def create_lstm_forecaster(
         # optimizer=optimizers[optimizer] if isinstance(optimizer, str) else optimizer,
         random_seed=random_seed,
         broadcasting=broadcasting,
+        max_steps=max_steps,
     )
     pipeline = X_transformers ** (y_transformers * forecaster)
     return pipeline
