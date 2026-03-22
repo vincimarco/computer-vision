@@ -121,6 +121,7 @@ def create_darts_xgb_forecaster(
 def create_lstm_forecaster(
     random_seed: int,
     loss: "str | keras.Metric",
+    broadcasting: bool,
     optimizer: "str | keras.optimizers.Optimizer",
 ) -> ForecastingPipeline:
 
@@ -169,7 +170,7 @@ def create_lstm_forecaster(
         loss=losses[loss] if isinstance(loss, str) else loss,
         # optimizer=optimizers[optimizer] if isinstance(optimizer, str) else optimizer,
         random_seed=random_seed,
-        broadcasting=True,
+        broadcasting=broadcasting,
     )
     pipeline = X_transformers ** (y_transformers * forecaster)
     return pipeline

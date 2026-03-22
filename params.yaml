@@ -36,3 +36,4 @@ models:
     loss: huber
     optimizer: adam
     random_seed: 42
+    broadcasting: False
