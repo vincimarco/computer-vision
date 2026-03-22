@@ -27,6 +27,13 @@ def train():
 
 
 @app.command()
+def test():
+    from .test import test
+
+    test()
+
+
+@app.command()
 def evaluate():
     from .evaluate import eval
 

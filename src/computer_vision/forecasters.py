@@ -1,3 +1,4 @@
+import pathlib
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -30,6 +31,11 @@ def create_forecaster(forecaster_name: str, params: dict) -> ForecastingPipeline
         return create_lstm_forecaster(**params)
 
     raise ValueError(f"Unknown forecaster: {forecaster_name}")
+
+
+def load_forecaster(path: pathlib.Path) -> ForecastingPipeline:
+    forecaster = ForecastingPipeline.load_from_path(path)
+    return forecaster
 
 
 def create_cnn3d_forecaster(
@@ -90,8 +96,10 @@ def create_naive_forecaster(sp: int) -> ForecastingPipeline:
 
 def create_darts_xgb_forecaster(
     lags: int,
+    lags_past_covariates: int,
     output_chunk_length: int,
     random_state: int,
+    multi_models: bool,
 ) -> ForecastingPipeline:
 
     _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
@@ -113,6 +121,8 @@ def create_darts_xgb_forecaster(
         lags=lags,
         output_chunk_length=output_chunk_length,
         random_state=random_state,
+        multi_models=multi_models,
+        lags_past_covariates=lags_past_covariates,
     )
     pipeline = X_transformers ** (y_transformers * forecaster)
     return pipeline
@@ -121,7 +131,9 @@ def create_darts_xgb_forecaster(
 def create_lstm_forecaster(
     random_seed: int,
     loss: "str | keras.Metric",
+    broadcasting: bool,
     optimizer: "str | keras.optimizers.Optimizer",
+    max_steps: int,
 ) -> ForecastingPipeline:
 
     import neuralforecast.losses.pytorch as nflosses
@@ -169,7 +181,8 @@ def create_lstm_forecaster(
         loss=losses[loss] if isinstance(loss, str) else loss,
         # optimizer=optimizers[optimizer] if isinstance(optimizer, str) else optimizer,
         random_seed=random_seed,
-        broadcasting=True,
+        broadcasting=broadcasting,
+        max_steps=max_steps,
     )
     pipeline = X_transformers ** (y_transformers * forecaster)
     return pipeline

@@ -4,6 +4,7 @@ from sktime.performance_metrics.forecasting import (
     MeanAbsoluteScaledError,
     MeanSquaredError,
 )
+from sktime.performance_metrics.forecasting._base import BaseForecastingErrorMetric
 
 
 class RootMeanSquaredError(MeanSquaredError):
@@ -51,7 +52,7 @@ class MeanAbsoluteScaledError672(MeanAbsoluteScaledError):
         self.sp = 672
 
 
-metrics = {
+metrics: dict[str, BaseForecastingErrorMetric] = {
     "MAE": MeanAbsoluteError(),
     "MAPE": MeanAbsolutePercentageError(),
     "RMSE": RootMeanSquaredError(),
