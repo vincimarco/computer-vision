@@ -60,7 +60,7 @@ def test():
         X_test = X.iloc[test_idx]
         y_test = y.iloc[test_idx]
 
-        forecaster.update(y_train, X_train, update_params=False)
+        forecaster.update(y_train, X_train, update_params=True)
         y_pred = forecaster.predict(fh=fh, X=X_test)
 
         if first_y_train is None:
