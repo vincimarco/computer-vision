@@ -1,3 +1,4 @@
+import pathlib
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -30,6 +31,11 @@ def create_forecaster(forecaster_name: str, params: dict) -> ForecastingPipeline
         return create_lstm_forecaster(**params)
 
     raise ValueError(f"Unknown forecaster: {forecaster_name}")
+
+
+def load_forecaster(path: pathlib.Path) -> ForecastingPipeline:
+    forecaster = ForecastingPipeline.load_from_path(path)
+    return forecaster
 
 
 def create_cnn3d_forecaster(
