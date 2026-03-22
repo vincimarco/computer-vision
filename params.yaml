@@ -2,14 +2,14 @@ general:
   fh: 24h
   model: darts_xgb
   seed: 42
-  cutoff: "2020-09-01T00:00:00-03:00"
+  cutoff: '2020-09-01T00:00:00-03:00'
   step: 96
   customer_ids:
-    - 115138
-    - 3904
-    - 50176
-    - 7001
-    - 18052
+  - 115138
+  - 3904
+  - 50176
+  - 7001
+  - 18052
 models:
   cnn3d:
     epochs: 200
@@ -26,7 +26,7 @@ models:
 
   darts_xgb:
     lags: 96
-    lags_past_covariates: 96
+    lags_past_covariates:
     output_chunk_length: 96
     random_state: 42
     multi_models: false

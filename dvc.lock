@@ -62,6 +62,10 @@ stages:
       md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
       size: 21240900911
       nfiles: 112
+    - path: ./src/computer_vision/dataset.py
+      hash: md5
+      md5: f9a707975a29c2fb6c038c896f15fa03
+      size: 3799
     - path: ./src/computer_vision/evaluate.py
       hash: md5
       md5: dca4713b0dccaa35ff98e46e700f3beb
@@ -78,7 +82,7 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: lstm
+          model: darts_xgb
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
@@ -88,17 +92,122 @@ stages:
           - 50176
           - 7001
           - 18052
-        models.lstm:
-          loss: huber
-          optimizer: adam
-          random_seed: 42
+        models.darts_xgb:
+          lags: 96
+          output_chunk_length: 96
+          random_state: 42
     outs:
     - path: ./eval/metrics.yaml
       hash: md5
-      md5: 071b68cea10bf6fd4a8d21ef7863d6ee
-      size: 337
+      md5: 88f232aadbb43809853d1ef52646d9ec
+      size: 335
     - path: ./eval/out/
       hash: md5
-      md5: 3a8f8b1c481f1c4770f7ce53d463c110.dir
-      size: 36196839
+      md5: 6a291ddde916de9fd0d8e6fdbab7a6ed.dir
+      size: 36199854
+      nfiles: 5
+  train:
+    cmd: uv run computer-vision train
+    deps:
+    - path: ./data/3.final/ECDUY/
+      hash: md5
+      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
+      size: 21240900911
+      nfiles: 112
+    - path: ./src/computer_vision/dataset.py
+      hash: md5
+      md5: f9a707975a29c2fb6c038c896f15fa03
+      size: 3799
+    - path: ./src/computer_vision/forecasters.py
+      hash: md5
+      md5: 718492e2709e2debcc1732f78101d684
+      size: 5291
+    - path: ./src/computer_vision/train.py
+      hash: md5
+      md5: ab3382a977af9a43693d6377c4867e88
+      size: 1501
+    params:
+      params.yaml:
+        general:
+          fh: 24h
+          model: darts_xgb
+          seed: 42
+          cutoff: '2020-09-01T00:00:00-03:00'
+          step: 96
+          customer_ids:
+          - 115138
+          - 3904
+          - 50176
+          - 7001
+          - 18052
+        models.darts_xgb:
+          lags: 96
+          lags_past_covariates:
+          output_chunk_length: 96
+          random_state: 42
+          multi_models: false
+    outs:
+    - path: ./output/train/
+      hash: md5
+      md5: 596e9439c671e0fe9cb681186375151f.dir
+      size: 10942445
+      nfiles: 1
+  test:
+    cmd: uv run computer-vision test
+    deps:
+    - path: ./data/3.final/ECDUY/
+      hash: md5
+      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
+      size: 21240900911
+      nfiles: 112
+    - path: ./output/train/
+      hash: md5
+      md5: 596e9439c671e0fe9cb681186375151f.dir
+      size: 10942445
+      nfiles: 1
+    - path: ./src/computer_vision/dataset.py
+      hash: md5
+      md5: f9a707975a29c2fb6c038c896f15fa03
+      size: 3799
+    - path: ./src/computer_vision/forecasters.py
+      hash: md5
+      md5: 718492e2709e2debcc1732f78101d684
+      size: 5291
+    - path: ./src/computer_vision/metrics.py
+      hash: md5
+      md5: 7eb12fc0dbaed5169c71f18cafeff6e9
+      size: 1651
+    - path: ./src/computer_vision/test.py
+      hash: md5
+      md5: 101a3dbe8be39dff725bb640122806a2
+      size: 5051
+    params:
+      params.yaml:
+        general:
+          fh: 24h
+          model: darts_xgb
+          seed: 42
+          cutoff: '2020-09-01T00:00:00-03:00'
+          step: 96
+          customer_ids:
+          - 115138
+          - 3904
+          - 50176
+          - 7001
+          - 18052
+        models.darts_xgb:
+          lags: 96
+          lags_past_covariates:
+          output_chunk_length: 96
+          random_state: 42
+          multi_models: false
+    outs:
+    - path: ./output/test/metrics.yaml
+      hash: md5
+      md5: ee2eef79a1b92895277752475433f33d
+      size: 193
+    - path: ./output/test/out/
+      hash: md5
+      md5: 3846704c68baad18632629436526b09b.dir
+      size: 36199584
       nfiles: 5
