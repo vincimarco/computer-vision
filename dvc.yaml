@@ -37,6 +37,7 @@ stages:
     cmd: uv run computer-vision test
     deps:
       - ./data/3.final/ECDUY/
+      - ./output/train/
       - ./src/computer_vision/test.py
       - ./src/computer_vision/dataset.py
       - ./src/computer_vision/forecasters.py
