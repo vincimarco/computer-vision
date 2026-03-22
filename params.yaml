@@ -31,3 +31,8 @@ models:
 
   naive:
     sp: 1
+
+  lstm:
+    loss: mse
+    optimizer: adam
+    random_seed: 42
