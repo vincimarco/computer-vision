@@ -130,7 +130,7 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: lstm
+          model: darts_xgb
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
@@ -140,17 +140,17 @@ stages:
           - 50176
           - 7001
           - 18052
-        models.lstm:
-          loss: huber
-          optimizer: adam
-          random_seed: 42
-          broadcasting: true
-          max_steps: 200
+        models.darts_xgb:
+          lags: 96
+          lags_past_covariates:
+          output_chunk_length: 96
+          random_state: 42
+          multi_models: false
     outs:
     - path: ./output/train/
       hash: md5
-      md5: 9f3205d0d11e9a8543891dbaab9b4dc9.dir
-      size: 31670428
+      md5: 2b6e223e50ee78f5b9497a3fd38a7d42.dir
+      size: 10942445
       nfiles: 1
   test:
     cmd: uv run computer-vision test
@@ -162,8 +162,8 @@ stages:
       nfiles: 112
     - path: ./output/train/
       hash: md5
-      md5: 9f3205d0d11e9a8543891dbaab9b4dc9.dir
-      size: 31670428
+      md5: 2b6e223e50ee78f5b9497a3fd38a7d42.dir
+      size: 10942445
       nfiles: 1
     - path: ./src/computer_vision/dataset.py
       hash: md5
@@ -179,13 +179,13 @@ stages:
       size: 1651
     - path: ./src/computer_vision/test.py
       hash: md5
-      md5: 101a3dbe8be39dff725bb640122806a2
-      size: 5051
+      md5: 8ebc5bc6c9315cba668e5cdab3308876
+      size: 5285
     params:
       params.yaml:
         general:
           fh: 24h
-          model: lstm
+          model: darts_xgb
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
@@ -195,19 +195,19 @@ stages:
           - 50176
           - 7001
           - 18052
-        models.lstm:
-          loss: huber
-          optimizer: adam
-          random_seed: 42
-          broadcasting: true
-          max_steps: 200
+        models.darts_xgb:
+          lags: 96
+          lags_past_covariates:
+          output_chunk_length: 96
+          random_state: 42
+          multi_models: false
     outs:
     - path: ./output/test/metrics.yaml
       hash: md5
-      md5: 30d975dc410871dc70de14dd385b7e78
-      size: 196
+      md5: f2dfaadc4bd68eddd0cfbcc6b8790184
+      size: 180
     - path: ./output/test/out/
       hash: md5
-      md5: 7e7e246a7e09233e6963026c3c09119c.dir
-      size: 36200314
+      md5: 8117516dfd1f69167d6ba4bbfb07951f.dir
+      size: 36003994
       nfiles: 5

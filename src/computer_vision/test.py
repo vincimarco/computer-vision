@@ -17,10 +17,15 @@ def test():
     console = Console()
     logger.info("Starting evaluation process")
 
+    end_date_str = params["test"]["end_date"]
+    end_date = pd.to_datetime(end_date_str, format="ISO8601", utc=True).tz_convert(
+        "America/Montevideo"
+    )
+
     with console.status("Loading dataset..."):
         customer_ids = params["general"]["customer_ids"]
         logger.info(f"Loading dataset for customer_ids: {customer_ids}")
-        X, y = load_dataset(customer_ids=customer_ids)
+        X, y = load_dataset(customer_ids=customer_ids, end_date=end_date)
     logger.info(f"Dataset loaded successfully - X shape: {X.shape}, y shape: {y.shape}")
 
     fh = create_fh(params["general"]["fh"])
