@@ -1,6 +1,6 @@
 general:
   fh: 24h
-  model: lstm
+  model: darts_xgb
   seed: 42
   cutoff: "2020-09-01T00:00:00-03:00"
   step: 96
@@ -12,7 +12,7 @@ general:
     - 18052
 models:
   cnn3d:
-    epochs: 30
+    epochs: 200
     batch_size: 32
     random_state: 42
     loss: mse
@@ -28,6 +28,7 @@ models:
     lags: 96
     output_chunk_length: 96
     random_state: 42
+    multi_models: False
 
   naive:
     sp: 1
@@ -36,4 +37,4 @@ models:
     loss: huber
     optimizer: adam
     random_seed: 42
-    broadcasting: False
+    broadcasting: true

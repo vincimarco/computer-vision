@@ -98,6 +98,7 @@ def create_darts_xgb_forecaster(
     lags: int,
     output_chunk_length: int,
     random_state: int,
+    multi_models: bool,
 ) -> ForecastingPipeline:
 
     _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
@@ -119,6 +120,7 @@ def create_darts_xgb_forecaster(
         lags=lags,
         output_chunk_length=output_chunk_length,
         random_state=random_state,
+        multi_models=multi_models,
     )
     pipeline = X_transformers ** (y_transformers * forecaster)
     return pipeline
