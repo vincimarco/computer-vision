@@ -119,11 +119,8 @@ def create_darts_xgb_forecaster(
 
 
 def create_lstm_forecaster(
-    lags: int,
-    output_chunk_length: int,
     random_seed: int,
     loss: "str | keras.Metric",
-    metrics: "collections.abc.Sequence[str | keras.Metric] | None",
     optimizer: "str | keras.optimizers.Optimizer",
 ) -> ForecastingPipeline:
 
