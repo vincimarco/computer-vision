@@ -124,7 +124,7 @@ def create_lstm_forecaster(
     optimizer: "str | keras.optimizers.Optimizer",
 ) -> ForecastingPipeline:
 
-    import torch.nn as nn
+    import neuralforecast.losses.pytorch as nflosses
     import torch.optim
 
     _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
@@ -144,8 +144,8 @@ def create_lstm_forecaster(
     y_transformers = Imputer()
 
     losses = {
-        "mse": nn.MSELoss(),
-        "huber": nn.HuberLoss(),
+        "mse": nflosses.MSE(),
+        "huber": nflosses.HuberLoss(),
     }
 
     optimizers = {
@@ -157,18 +157,19 @@ def create_lstm_forecaster(
         freq="15min",
         futr_exog_list=[
             "year",
-            "month_of_year_sin",
-            "month_of_year_cos",
-            "day_of_week_sin",
-            "day_of_week_cos",
-            "hour_of_day_sin",
-            "hour_of_day_cos",
+            "month_of_year__sin",
+            "month_of_year__cos",
+            "day_of_week__sin",
+            "day_of_week__cos",
+            "hour_of_day__sin",
+            "hour_of_day__cos",
         ],
         verbose_fit=True,
         verbose_predict=True,
         loss=losses[loss] if isinstance(loss, str) else loss,
-        optimizer=optimizers[optimizer] if isinstance(optimizer, str) else optimizer,
+        # optimizer=optimizers[optimizer] if isinstance(optimizer, str) else optimizer,
         random_seed=random_seed,
+        broadcasting=True,
     )
     pipeline = X_transformers ** (y_transformers * forecaster)
     return pipeline
