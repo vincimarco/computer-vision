@@ -23,6 +23,27 @@ stages:
     outs:
       - ./imgs/
 
+  train:
+    cmd: uv run computer-vision train
+    deps:
+      - ./data/3.final/ECDUY/
+      - ./src/computer_vision/train.py
+      - ./src/computer_vision/dataset.py
+      - ./src/computer_vision/forecasters.py
+    outs:
+      - ./output/train/
+
+  test:
+    cmd: uv run computer-vision test
+    deps:
+      - ./data/3.final/ECDUY/
+      - ./src/computer_vision/test.py
+      - ./src/computer_vision/dataset.py
+      - ./src/computer_vision/forecasters.py
+      - ./src/computer_vision/metrics.py
+    metrics:
+      - ./output/test/metrics.yaml
+
   evaluate:
     cmd: uv run computer-vision evaluate
     params:
