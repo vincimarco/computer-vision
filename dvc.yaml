@@ -32,6 +32,7 @@ stages:
     deps:
       - ./data/3.final/ECDUY/
       - ./src/computer_vision/evaluate.py
+      - ./src/computer_vision/dataset.py
       - ./src/computer_vision/forecasters.py
       - ./src/computer_vision/metrics.py
     outs:

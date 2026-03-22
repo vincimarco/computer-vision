@@ -40,8 +40,23 @@ def load_customer_time_series(
         lf = lf.filter(pl.col("datetime") <= end_date)
 
     df = lf.collect(engine="streaming").to_pandas()
+
     df = df.set_index(["id", "datetime"])
     df.index.levels[-1].freq = df.index.levels[-1].inferred_freq
+
+    full_date_range = pd.date_range(
+        start=df.index.get_level_values("datetime").min(),
+        end=df.index.get_level_values("datetime").max(),
+        freq="15min",
+    )
+
+    new_index = pd.MultiIndex.from_product(
+        iterables=[df.index.get_level_values("id").unique(), full_date_range],
+        names=["id", "datetime"],
+    )
+    # Step 2: Reindex the DataFrame to the new index
+    df = df.reindex(new_index).sort_index()
+
     return df
 
 

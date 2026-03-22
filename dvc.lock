@@ -68,8 +68,8 @@ stages:
       size: 5305
     - path: ./src/computer_vision/forecasters.py
       hash: md5
-      md5: 2ab41e7d83bb1e6959cc9ed3cabe8c42
-      size: 3299
+      md5: c49d209c200595a019b993198eb78e17
+      size: 4957
     - path: ./src/computer_vision/metrics.py
       hash: md5
       md5: 9a7b12a509eb45c5298e89634e2a3aff
@@ -78,7 +78,7 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: darts_xgb
+          model: lstm
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
@@ -88,17 +88,17 @@ stages:
           - 50176
           - 7001
           - 18052
-        models.darts_xgb:
-          lags: 96
-          output_chunk_length: 96
-          random_state: 42
+        models.lstm:
+          loss: huber
+          optimizer: adam
+          random_seed: 42
     outs:
     - path: ./eval/metrics.yaml
       hash: md5
-      md5: 42ad306508a962030e694317b9e4b1bd
-      size: 321
+      md5: 071b68cea10bf6fd4a8d21ef7863d6ee
+      size: 337
     - path: ./eval/out/
       hash: md5
-      md5: fb729c129080a5ac6b74ff2dea3603da.dir
-      size: 35907429
+      md5: 3a8f8b1c481f1c4770f7ce53d463c110.dir
+      size: 36196839
       nfiles: 5
