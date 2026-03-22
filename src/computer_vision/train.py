@@ -1,46 +1,42 @@
+import pandas as pd
+from loguru import logger
 from rich.console import Console
-from sktime.split.temporal_train_test_split import temporal_train_test_split
-from sktime.utils.plotting import plot_series
 
-from .config import params
+from computer_vision.utils import create_fh
+
+from .config import TRAIN_OUTPUT_DIR, params
 from .dataset import load_dataset
 from .forecasters import create_forecaster
 
 
 def train():
     console = Console()
+    logger.info("Starting evaluation process")
+
+    cutoff_str: str = params["general"]["cutoff"]
+    cutoff = pd.to_datetime(cutoff_str, format="ISO8601", utc=True).tz_convert(
+        "America/Montevideo"
+    )
+    cutoff = cutoff - pd.Timedelta("15min")
+    logger.debug(f"Cutoff datetime: {cutoff}")
+
+    fh = create_fh(params["general"]["fh"])
+    logger.debug(f"Forecast horizon: {fh}")
 
     with console.status("Loading dataset..."):
         customer_ids = params["general"]["customer_ids"]
-        X, y = load_dataset(customer_ids=customer_ids)
-    console.print("Dataset loaded!")
-    console.print(f"X shape: {X.shape}, y shape: {y.shape}")
-
-    with console.status("Splitting dataset..."):
-        y_train, y_test, X_train, X_test = temporal_train_test_split(
-            y, X, test_size=params["general"]["test_size"]
-        )
-    console.print("Dataset split!")
-
-    console.print(
-        f"y_train shape: {y_train.shape}, y_test shape: {y_test.shape}"
-        f", X_train shape: {X_train.shape}, X_test shape: {X_test.shape}"
-    )
-
-    fh = list(range(1, 25 * 4))
+        logger.info(f"Loading dataset for customer_ids: {customer_ids}")
+        X, y = load_dataset(customer_ids=customer_ids, end_date=cutoff.to_pydatetime())
+    logger.info(f"Dataset loaded successfully - X shape: {X.shape}, y shape: {y.shape}")
+    logger.info(f"Last index: {y.xs(params['general']['customer_ids'][0]).index.max()}")
 
     forecaster = create_forecaster(
         params["general"]["model"], params["models"][params["general"]["model"]]
     )
+    logger.info(f"Forecaster created: {params['general']['model']}")
 
-    forecaster.fit(y=y_train, X=X_train, fh=fh)
-    y_pred = forecaster.predict(X=X_test)
+    forecaster.fit(y=y, X=X, fh=fh)
 
-    for customer_id in y_test.index.get_level_values(0).unique():
-        fig, ax = plot_series(
-            # y_train.xs(customer_id),
-            y_test.xs(customer_id),
-            y_pred.xs(customer_id),
-            labels=["y_test", "y_pred"],
-        )
-        fig.savefig(f"tmp/prediction_{customer_id}.png")
+    output_dir = TRAIN_OUTPUT_DIR / params["general"]["model"]
+    forecaster.save(output_dir)
+    logger.info(f"Model saved in {output_dir}.zip")
