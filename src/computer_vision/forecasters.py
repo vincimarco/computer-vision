@@ -96,6 +96,7 @@ def create_naive_forecaster(sp: int) -> ForecastingPipeline:
 
 def create_darts_xgb_forecaster(
     lags: int,
+    lags_past_covariates: int,
     output_chunk_length: int,
     random_state: int,
     multi_models: bool,
@@ -121,6 +122,7 @@ def create_darts_xgb_forecaster(
         output_chunk_length=output_chunk_length,
         random_state=random_state,
         multi_models=multi_models,
+        lags_past_covariates=lags_past_covariates,
     )
     pipeline = X_transformers ** (y_transformers * forecaster)
     return pipeline
