@@ -219,3 +219,5 @@ output/
 tmp/
 imgs/
 /imgs
+
+lightning_logs
