@@ -30,6 +30,9 @@ stages:
       - ./src/computer_vision/train.py
       - ./src/computer_vision/dataset.py
       - ./src/computer_vision/forecasters.py
+    params:
+      - general
+      - models.${general.model}
     outs:
       - ./output/train/
 
@@ -42,15 +45,19 @@ stages:
       - ./src/computer_vision/dataset.py
       - ./src/computer_vision/forecasters.py
       - ./src/computer_vision/metrics.py
+    params:
+      - general
+      - models.${general.model}
     metrics:
       - ./output/test/metrics.yaml
+    outs:
+      - ./output/test/out/
 
   evaluate:
     cmd: uv run computer-vision evaluate
     params:
       - general
       - models.${general.model}
-
     deps:
       - ./data/3.final/ECDUY/
       - ./src/computer_vision/evaluate.py
