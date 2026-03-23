@@ -88,19 +88,14 @@ def create_darts_xgb_forecaster(
     output_chunk_length: int,
     random_state: int,
     multi_models: bool,
-) -> ForecastingPipeline:
-
-    X_transformers, y_transformers = _create_transformers()
-
-    forecaster = DartsXGBModel(
+) -> DartsXGBModel:
+    return DartsXGBModel(
         lags=lags,
         output_chunk_length=output_chunk_length,
         random_state=random_state,
         multi_models=multi_models,
         lags_past_covariates=lags_past_covariates,
     )
-    pipeline = X_transformers ** (y_transformers * forecaster)  # type: ignore
-    return pipeline
 
 
 def create_lstm_forecaster(
