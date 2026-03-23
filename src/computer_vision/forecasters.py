@@ -157,7 +157,9 @@ def _create_transformers() -> tuple[TransformerPipeline, TransformerPipeline]:
             feature_names_out="original",
         )
     ) + HolidayFeatures(
-        calendar=country_holidays("UY"), return_dummies=False, return_indicator=True
+        calendar=country_holidays("UY", years=[2019, 2020]),
+        return_dummies=False,
+        return_indicator=True,
     )
 
     X_transformers = _dtfeats_transformer
