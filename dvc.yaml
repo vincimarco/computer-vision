@@ -47,6 +47,7 @@ stages:
       - ./src/computer_vision/metrics.py
     params:
       - general
+      - test
       - models.${general.model}
     metrics:
       - ./output/test/metrics.yaml
