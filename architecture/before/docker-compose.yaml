@@ -1,0 +1,60 @@
+name: computer-vision_before
+
+services:
+  # MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    ports:
+      - "1883:1883" # MQTT
+    volumes:
+      - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto-data:/mosquitto/data
+      # - mosquitto-conf:/mosquitto/config
+    networks:
+      - energy_net
+
+  # Node-RED
+  node-red:
+    image: nodered/node-red:latest
+    volumes:
+      - node-red-data:/data
+    networks:
+      - energy_net
+    ports:
+      - "1880:1880"
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - energy_net
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_USER=user
+      - GF_SECURITY_ADMIN_PASSWORD=password
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - energy_net
+
+volumes:
+  mosquitto-data:
+  node-red-data:
+  postgres-data:
+  grafana-data:
+
+networks:
+  energy_net:
+    driver: bridge
