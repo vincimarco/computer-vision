@@ -131,6 +131,7 @@ def create_lstm_forecaster(
             "day_of_week__cos",
             "hour_of_day__sin",
             "hour_of_day__cos",
+            "is_holiday",
         ],
         verbose_fit=True,
         verbose_predict=True,
