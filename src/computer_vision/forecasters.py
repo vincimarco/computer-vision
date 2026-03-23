@@ -5,11 +5,16 @@ if TYPE_CHECKING:
     import collections.abc
 
     import keras
+from sklearn.preprocessing import MinMaxScaler
 from sktime.forecasting.compose import ForecastingPipeline
 from sktime.forecasting.darts import DartsXGBModel
 from sktime.forecasting.naive import NaiveForecaster
 from sktime.forecasting.neuralforecast import NeuralForecastLSTM
-from sktime.transformations.compose import ColumnEnsembleTransformer, Id
+from sktime.transformations.compose import (
+    ColumnEnsembleTransformer,
+    Id,
+    TransformerPipeline,
+)
 from sktime.transformations.series.date import DateTimeFeatures
 from sktime.transformations.series.impute import Imputer
 
@@ -18,19 +23,26 @@ from computer_vision.transformer.cyclical_encoding import CyclicalEncodingTransf
 
 
 def create_forecaster(forecaster_name: str, params: dict) -> ForecastingPipeline:
+    X_transformers, y_transformers = _create_transformers()
+
     if forecaster_name == "cnn3d":
-        return create_cnn3d_forecaster(**params)
+        forecaster = create_cnn3d_forecaster(**params)
 
-    if forecaster_name == "naive":
-        return create_naive_forecaster(**params)
+    elif forecaster_name == "naive":
+        forecaster = create_naive_forecaster(**params)
 
-    if forecaster_name == "darts_xgb":
-        return create_darts_xgb_forecaster(**params)
+    elif forecaster_name == "darts_xgb":
+        forecaster = create_darts_xgb_forecaster(**params)
 
-    if forecaster_name == "lstm":
-        return create_lstm_forecaster(**params)
+    elif forecaster_name == "lstm":
+        forecaster = create_lstm_forecaster(**params)
 
-    raise ValueError(f"Unknown forecaster: {forecaster_name}")
+    else:
+        raise ValueError(f"Unknown forecaster: {forecaster_name}")
+
+    pipeline = X_transformers ** (y_transformers * forecaster)
+
+    return pipeline
 
 
 def load_forecaster(path: pathlib.Path) -> ForecastingPipeline:
@@ -50,27 +62,8 @@ def create_cnn3d_forecaster(
     sample_weights_function: "str | None",
     decay_rate: float,
     window_size: str,
-) -> ForecastingPipeline:
-
-    # _original_features_transformer = Id()
-
-    _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
-        [
-            ("id", Id(), ["year"]),
-            (
-                "cyclical",
-                CyclicalEncodingTransformer(),
-                ["month_of_year", "day_of_week", "hour_of_day"],
-            ),
-        ],
-        feature_names_out="original",
-    )
-
-    X_transformers = _dtfeats_transformer
-
-    y_transformers = Imputer()
-
-    forecaster = CNN3D(
+) -> CNN3D:
+    return CNN3D(
         epochs=epochs,
         batch_size=batch_size,
         random_state=random_state,
@@ -84,14 +77,9 @@ def create_cnn3d_forecaster(
         window_size=window_size,
     )
 
-    pipeline = X_transformers ** (y_transformers * forecaster)
-    return pipeline
 
-
-def create_naive_forecaster(sp: int) -> ForecastingPipeline:
-    forecaster = NaiveForecaster(strategy="last", sp=sp)
-    pipeline = ForecastingPipeline([forecaster])
-    return pipeline
+def create_naive_forecaster(sp: int) -> NaiveForecaster:
+    return NaiveForecaster(strategy="last", sp=sp)
 
 
 def create_darts_xgb_forecaster(
@@ -100,32 +88,14 @@ def create_darts_xgb_forecaster(
     output_chunk_length: int,
     random_state: int,
     multi_models: bool,
-) -> ForecastingPipeline:
-
-    _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
-        [
-            ("id", Id(), ["year"]),
-            (
-                "cyclical",
-                CyclicalEncodingTransformer(),
-                ["month_of_year", "day_of_week", "hour_of_day"],
-            ),
-        ],
-        feature_names_out="original",
-    )
-
-    X_transformers = _dtfeats_transformer
-
-    y_transformers = Imputer()
-    forecaster = DartsXGBModel(
+) -> DartsXGBModel:
+    return DartsXGBModel(
         lags=lags,
         output_chunk_length=output_chunk_length,
         random_state=random_state,
         multi_models=multi_models,
         lags_past_covariates=lags_past_covariates,
     )
-    pipeline = X_transformers ** (y_transformers * forecaster)
-    return pipeline
 
 
 def create_lstm_forecaster(
@@ -134,26 +104,10 @@ def create_lstm_forecaster(
     broadcasting: bool,
     optimizer: "str | keras.optimizers.Optimizer",
     max_steps: int,
-) -> ForecastingPipeline:
+) -> NeuralForecastLSTM:
 
     import neuralforecast.losses.pytorch as nflosses
     import torch.optim
-
-    _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
-        [
-            ("id", Id(), ["year"]),
-            (
-                "cyclical",
-                CyclicalEncodingTransformer(),
-                ["month_of_year", "day_of_week", "hour_of_day"],
-            ),
-        ],
-        feature_names_out="original",
-    )
-
-    X_transformers = _dtfeats_transformer
-
-    y_transformers = Imputer()
 
     losses = {
         "mse": nflosses.MSE(),
@@ -165,7 +119,7 @@ def create_lstm_forecaster(
         "sgd": torch.optim.SGD,
     }
 
-    forecaster = NeuralForecastLSTM(
+    return NeuralForecastLSTM(
         freq="15min",
         futr_exog_list=[
             "year",
@@ -184,5 +138,23 @@ def create_lstm_forecaster(
         broadcasting=broadcasting,
         max_steps=max_steps,
     )
-    pipeline = X_transformers ** (y_transformers * forecaster)
-    return pipeline
+
+
+def _create_transformers() -> tuple[TransformerPipeline, TransformerPipeline]:
+    _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
+        [
+            ("id", Id(), ["year"]),
+            (
+                "cyclical",
+                CyclicalEncodingTransformer(),
+                ["month_of_year", "day_of_week", "hour_of_day"],
+            ),
+        ],
+        feature_names_out="original",
+    )
+
+    X_transformers = _dtfeats_transformer
+
+    y_transformers = MinMaxScaler() * Imputer()
+
+    return X_transformers, y_transformers
