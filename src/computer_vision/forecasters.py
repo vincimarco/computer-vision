@@ -5,6 +5,7 @@ if TYPE_CHECKING:
     import collections.abc
 
     import keras
+from holidays import country_holidays
 from sklearn.preprocessing import MinMaxScaler
 from sktime.forecasting.compose import ForecastingPipeline
 from sktime.forecasting.darts import DartsXGBModel
@@ -16,6 +17,7 @@ from sktime.transformations.compose import (
     TransformerPipeline,
 )
 from sktime.transformations.series.date import DateTimeFeatures
+from sktime.transformations.series.holiday import HolidayFeatures
 from sktime.transformations.series.impute import Imputer
 
 from computer_vision.model.cnn3d import CNN3D
@@ -141,16 +143,21 @@ def create_lstm_forecaster(
 
 
 def _create_transformers() -> tuple[TransformerPipeline, TransformerPipeline]:
-    _dtfeats_transformer = DateTimeFeatures() * ColumnEnsembleTransformer(
-        [
-            ("id", Id(), ["year"]),
-            (
-                "cyclical",
-                CyclicalEncodingTransformer(),
-                ["month_of_year", "day_of_week", "hour_of_day"],
-            ),
-        ],
-        feature_names_out="original",
+    _dtfeats_transformer = (
+        DateTimeFeatures()
+        * ColumnEnsembleTransformer(
+            [
+                ("id", Id(), ["year"]),
+                (
+                    "cyclical",
+                    CyclicalEncodingTransformer(),
+                    ["month_of_year", "day_of_week", "hour_of_day"],
+                ),
+            ],
+            feature_names_out="original",
+        )
+    ) + HolidayFeatures(
+        calendar=country_holidays("UY"), return_dummies=False, return_indicator=True
     )
 
     X_transformers = _dtfeats_transformer
