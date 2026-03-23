@@ -6,7 +6,6 @@ if TYPE_CHECKING:
 
     import keras
 from holidays import country_holidays
-from sklearn.preprocessing import MinMaxScaler
 from sktime.forecasting.compose import ForecastingPipeline
 from sktime.forecasting.darts import DartsXGBModel
 from sktime.forecasting.naive import NaiveForecaster
@@ -165,6 +164,6 @@ def _create_transformers() -> tuple[TransformerPipeline, TransformerPipeline]:
 
     X_transformers = _dtfeats_transformer
 
-    y_transformers = MinMaxScaler() * Imputer()
+    y_transformers = Imputer()
 
     return X_transformers, y_transformers
