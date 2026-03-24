@@ -1,7 +1,7 @@
 import polars as pl
 import tqdm
 
-from computer_vision.config import INTERIM_DATA_DIR, RAW_DATA_DIR
+from computer_vision.config import INTERIM_DATA_DIR, RAW_DATA_DIR, params
 
 
 def interim():
@@ -23,6 +23,7 @@ def interim():
             pl.from_epoch(pl.col("datetime")).dt.convert_time_zone(
                 "America/Montevideo"
             ),
-            pl.col("value") * 1000,
         )
+        if params["preprocessing"]["to_wh"]:
+            lf = lf.with_columns(pl.col("value") * 1000)
         lf.sink_parquet(INTERIM_DATA_DIR / f"{file.stem}.parquet", engine="streaming")

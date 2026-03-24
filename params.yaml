@@ -14,6 +14,9 @@ test:
   update_params: true
   end_date: "2020-10-31T23:45:00-03:00"
 
+preprocessing:
+  to_wh: False
+
 models:
   cnn3d:
     epochs: 200
