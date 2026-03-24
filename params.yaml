@@ -45,6 +45,13 @@ models:
     broadcasting: true
     max_steps: 200
 
+  tcn:
+    loss: huber
+    optimizer: adam
+    random_seed: 42
+    broadcasting: true
+    max_steps: 200
+
   cnn:
     epochs: 200
     batch_size: 16
