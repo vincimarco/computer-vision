@@ -5,11 +5,13 @@ if TYPE_CHECKING:
     import collections.abc
 
     import keras
+import tqdm.keras
 from holidays import country_holidays
-from sktime.forecasting.compose import ForecastingPipeline
+from sktime.forecasting.compose import ForecastingPipeline, make_reduction
 from sktime.forecasting.darts import DartsXGBModel
 from sktime.forecasting.naive import NaiveForecaster
-from sktime.forecasting.neuralforecast import NeuralForecastLSTM
+from sktime.forecasting.neuralforecast import NeuralForecastLSTM, NeuralForecastTCN
+from sktime.regression.deep_learning import CNNRegressor
 from sktime.transformations.compose import (
     ColumnEnsembleTransformer,
     Id,
@@ -37,6 +39,12 @@ def create_forecaster(forecaster_name: str, params: dict) -> ForecastingPipeline
 
     elif forecaster_name == "lstm":
         forecaster = create_lstm_forecaster(**params)
+
+    elif forecaster_name == "tcn":
+        forecaster = create_tcn_forecaster(**params)
+
+    elif forecaster_name == "cnn":
+        forecaster = create_cnn_forecaster(**params)
 
     else:
         raise ValueError(f"Unknown forecaster: {forecaster_name}")
@@ -142,27 +150,109 @@ def create_lstm_forecaster(
     )
 
 
-def _create_transformers() -> tuple[TransformerPipeline, TransformerPipeline]:
-    _dtfeats_transformer = (
-        DateTimeFeatures()
-        * ColumnEnsembleTransformer(
-            [
-                ("id", Id(), ["year"]),
-                (
-                    "cyclical",
-                    CyclicalEncodingTransformer(),
-                    ["month_of_year", "day_of_week", "hour_of_day"],
+def create_tcn_forecaster(
+    random_seed: int,
+    loss: "str | keras.Metric",
+    broadcasting: bool,
+    optimizer: "str | keras.optimizers.Optimizer",
+    max_steps: int,
+) -> NeuralForecastTCN:
+    import neuralforecast.losses.pytorch as nflosses
+    import torch.optim
+
+    losses = {
+        "mse": nflosses.MSE(),
+        "huber": nflosses.HuberLoss(),
+    }
+
+    optimizers = {
+        "adam": torch.optim.Adam,
+        "sgd": torch.optim.SGD,
+    }
+
+    return NeuralForecastTCN(
+        freq="15min",
+        futr_exog_list=[
+            "year",
+            "month_of_year__sin",
+            "month_of_year__cos",
+            "day_of_week__sin",
+            "day_of_week__cos",
+            "hour_of_day__sin",
+            "hour_of_day__cos",
+            "is_holiday",
+        ],
+        verbose_fit=True,
+        verbose_predict=True,
+        loss=losses[loss] if isinstance(loss, str) else loss,
+        random_seed=random_seed,
+        broadcasting=broadcasting,
+        max_steps=max_steps,
+    )
+
+
+def create_cnn_forecaster(
+    epochs: int,
+    batch_size: int,
+    kernel_size: int,
+    avg_pool_size: int,
+    n_conv_layers: int,
+    random_state: int,
+    loss: str,
+    strategy: str,
+    window_length: int,
+    pooling: str,
+):
+    import keras
+
+    return make_reduction(
+        CNNRegressor(
+            n_epochs=epochs,
+            batch_size=batch_size,
+            kernel_size=kernel_size,
+            avg_pool_size=avg_pool_size,
+            n_conv_layers=n_conv_layers,
+            random_state=random_state,
+            loss=loss,
+            verbose=True,
+            metrics=["mae"],
+            callbacks=[
+                tqdm.keras.TqdmCallback(verbose=1),
+                keras.callbacks.EarlyStopping(
+                    monitor="loss",
+                    patience=5,
+                    restore_best_weights=True,
                 ),
             ],
-            feature_names_out="original",
-        )
-    ) + HolidayFeatures(
+        ),
+        strategy=strategy,
+        window_length=window_length,
+        pooling=pooling,
+        windows_identical=False,
+    )
+
+
+def _create_transformers() -> tuple[TransformerPipeline, TransformerPipeline]:
+    _dtfeats_transformer = DateTimeFeatures()
+    _holiday_transformer = HolidayFeatures(
         calendar=country_holidays("UY", years=[2019, 2020]),
         return_dummies=False,
         return_indicator=True,
+        keep_original_columns=True,
+    )
+    _column_transformer = ColumnEnsembleTransformer(
+        [
+            ("id", Id(), ["year"]),
+            (
+                "cyclical",
+                CyclicalEncodingTransformer(),
+                ["month_of_year", "day_of_week", "hour_of_day"],
+            ),
+        ],
+        feature_names_out="original",
     )
 
-    X_transformers = _dtfeats_transformer
+    X_transformers = _dtfeats_transformer * _column_transformer * _holiday_transformer
 
     y_transformers = Imputer()
 

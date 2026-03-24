@@ -120,8 +120,8 @@ stages:
       size: 3799
     - path: ./src/computer_vision/forecasters.py
       hash: md5
-      md5: aafd36d9e53ef498494df81abe0a4e04
-      size: 5340
+      md5: 78ed81ede03506761f35989c53f4fa1c
+      size: 7161
     - path: ./src/computer_vision/train.py
       hash: md5
       md5: ab3382a977af9a43693d6377c4867e88
@@ -130,27 +130,27 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: darts_xgb
+          model: tcn
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
           customer_ids:
           - 115138
-          - 3904
+          - 15805
           - 50176
           - 7001
           - 18052
-        models.darts_xgb:
-          lags: 96
-          lags_past_covariates:
-          output_chunk_length: 96
-          random_state: 42
-          multi_models: false
+        models.tcn:
+          loss: huber
+          optimizer: adam
+          random_seed: 42
+          broadcasting: true
+          max_steps: 200
     outs:
     - path: ./output/train/
       hash: md5
-      md5: 2b6e223e50ee78f5b9497a3fd38a7d42.dir
-      size: 10942445
+      md5: 6afe96e0f232a1d3515aa310340f0aaa.dir
+      size: 26938768
       nfiles: 1
   test:
     cmd: uv run computer-vision test
@@ -162,8 +162,8 @@ stages:
       nfiles: 112
     - path: ./output/train/
       hash: md5
-      md5: 2b6e223e50ee78f5b9497a3fd38a7d42.dir
-      size: 10942445
+      md5: 6afe96e0f232a1d3515aa310340f0aaa.dir
+      size: 26938768
       nfiles: 1
     - path: ./src/computer_vision/dataset.py
       hash: md5
@@ -171,8 +171,8 @@ stages:
       size: 3799
     - path: ./src/computer_vision/forecasters.py
       hash: md5
-      md5: aafd36d9e53ef498494df81abe0a4e04
-      size: 5340
+      md5: 78ed81ede03506761f35989c53f4fa1c
+      size: 7161
     - path: ./src/computer_vision/metrics.py
       hash: md5
       md5: 7eb12fc0dbaed5169c71f18cafeff6e9
@@ -185,29 +185,32 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: darts_xgb
+          model: tcn
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
           customer_ids:
           - 115138
-          - 3904
+          - 15805
           - 50176
           - 7001
           - 18052
-        models.darts_xgb:
-          lags: 96
-          lags_past_covariates:
-          output_chunk_length: 96
-          random_state: 42
-          multi_models: false
+        models.tcn:
+          loss: huber
+          optimizer: adam
+          random_seed: 42
+          broadcasting: true
+          max_steps: 200
+        test:
+          update_params: true
+          end_date: '2020-10-31T23:45:00-03:00'
     outs:
     - path: ./output/test/metrics.yaml
       hash: md5
-      md5: f2dfaadc4bd68eddd0cfbcc6b8790184
-      size: 180
+      md5: 89dbc5ba50f95f3a59390835ae52518b
+      size: 193
     - path: ./output/test/out/
       hash: md5
-      md5: 8117516dfd1f69167d6ba4bbfb07951f.dir
-      size: 36003994
+      md5: c19b79adc3184145bf553d0af880d555.dir
+      size: 36006440
       nfiles: 5
