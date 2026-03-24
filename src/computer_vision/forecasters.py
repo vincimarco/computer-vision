@@ -167,6 +167,7 @@ def create_cnn_forecaster(
             n_conv_layers=n_conv_layers,
             random_state=random_state,
             loss=loss,
+            verbose=True,
         ),
         strategy=strategy,
         window_length=window_length,
