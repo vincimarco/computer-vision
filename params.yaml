@@ -1,18 +1,18 @@
 general:
   fh: 24h
-  model: cnn
+  model: tcn
   seed: 42
-  cutoff: "2020-09-01T00:00:00-03:00"
+  cutoff: '2020-09-01T00:00:00-03:00'
   step: 96
   customer_ids:
-    - 115138
-    - 15805
-    - 50176
-    - 7001
-    - 18052
+  - 115138
+  - 15805
+  - 50176
+  - 7001
+  - 18052
 test:
-  update_params: false
-  end_date: "2020-10-31T23:45:00-03:00"
+  update_params: true
+  end_date: '2020-10-31T23:45:00-03:00'
 
 models:
   cnn3d:
