@@ -44,3 +44,15 @@ models:
     random_seed: 42
     broadcasting: true
     max_steps: 200
+
+  cnn:
+    epochs: 200
+    batch_size: 16
+    kernel_size: 9
+    avg_pool_size: 3
+    n_conv_layers: 2
+    random_state: 42
+    loss: mse
+    strategy: recursive
+    window_length: 672
+    pooling: global

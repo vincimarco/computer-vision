@@ -6,10 +6,11 @@ if TYPE_CHECKING:
 
     import keras
 from holidays import country_holidays
-from sktime.forecasting.compose import ForecastingPipeline
+from sktime.forecasting.compose import ForecastingPipeline, make_reduction
 from sktime.forecasting.darts import DartsXGBModel
 from sktime.forecasting.naive import NaiveForecaster
 from sktime.forecasting.neuralforecast import NeuralForecastLSTM
+from sktime.regression.deep_learning import CNNRegressor
 from sktime.transformations.compose import (
     ColumnEnsembleTransformer,
     Id,
@@ -37,6 +38,9 @@ def create_forecaster(forecaster_name: str, params: dict) -> ForecastingPipeline
 
     elif forecaster_name == "lstm":
         forecaster = create_lstm_forecaster(**params)
+
+    elif forecaster_name == "cnn":
+        forecaster = create_cnn_forecaster(**params)
 
     else:
         raise ValueError(f"Unknown forecaster: {forecaster_name}")
@@ -139,6 +143,35 @@ def create_lstm_forecaster(
         random_seed=random_seed,
         broadcasting=broadcasting,
         max_steps=max_steps,
+    )
+
+
+def create_cnn_forecaster(
+    epochs: int,
+    batch_size: int,
+    kernel_size: int,
+    avg_pool_size: int,
+    n_conv_layers: int,
+    random_state: int,
+    loss: str,
+    strategy: str,
+    window_length: int,
+    pooling: str,
+):
+    return make_reduction(
+        CNNRegressor(
+            n_epochs=epochs,
+            batch_size=batch_size,
+            kernel_size=kernel_size,
+            avg_pool_size=avg_pool_size,
+            n_conv_layers=n_conv_layers,
+            random_state=random_state,
+            loss=loss,
+        ),
+        strategy=strategy,
+        window_length=window_length,
+        pooling=pooling,
+        windows_identical=False,
     )
 
 
