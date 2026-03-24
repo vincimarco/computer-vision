@@ -233,26 +233,26 @@ def create_cnn_forecaster(
 
 
 def _create_transformers() -> tuple[TransformerPipeline, TransformerPipeline]:
-    _dtfeats_transformer = (
-        DateTimeFeatures()
-        * ColumnEnsembleTransformer(
-            [
-                ("id", Id(), ["year"]),
-                (
-                    "cyclical",
-                    CyclicalEncodingTransformer(),
-                    ["month_of_year", "day_of_week", "hour_of_day"],
-                ),
-            ],
-            feature_names_out="original",
-        )
-    ) + HolidayFeatures(
+    _dtfeats_transformer = DateTimeFeatures()
+    _holiday_transformer = HolidayFeatures(
         calendar=country_holidays("UY", years=[2019, 2020]),
         return_dummies=False,
         return_indicator=True,
+        keep_original_columns=True,
+    )
+    _column_transformer = ColumnEnsembleTransformer(
+        [
+            ("id", Id(), ["year"]),
+            (
+                "cyclical",
+                CyclicalEncodingTransformer(),
+                ["month_of_year", "day_of_week", "hour_of_day"],
+            ),
+        ],
+        feature_names_out="original",
     )
 
-    X_transformers = _dtfeats_transformer
+    X_transformers = _dtfeats_transformer * _column_transformer * _holiday_transformer
 
     y_transformers = Imputer()
 
