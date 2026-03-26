@@ -1,6 +1,6 @@
 general:
   fh: 24h
-  model: tcn
+  model: cnn3d
   seed: 42
   cutoff: "2020-09-01T00:00:00-03:00"
   step: 96
@@ -12,7 +12,10 @@ general:
     - 18052
 test:
   update_params: true
-  end_date: "2020-10-31T23:45:00-03:00"
+  end_date: "2020-10-30T23:45:00-03:00"
+
+preprocessing:
+  to_wh: false
 
 models:
   cnn3d:

@@ -10,21 +10,21 @@ stages:
       nfiles: 24
     - path: ./src/computer_vision/preprocessing/interim.py
       hash: md5
-      md5: c78a9d1b68d5d1f160954f7c257b37aa
-      size: 971
+      md5: 90ed92d1126ba94c4e52257531ea3bb3
+      size: 1045
     outs:
     - path: ./data/2.interim/ECDUY/
       hash: md5
-      md5: 95236646d4fe2b63f60c744a398ac110.dir
-      size: 19391857513
+      md5: 1c7a29d4b8629b9e6b1b2216624ec481.dir
+      size: 20877326454
       nfiles: 23
   preprocessing-final:
     cmd: uv run computer-vision preprocessing final
     deps:
     - path: ./data/2.interim/ECDUY/
       hash: md5
-      md5: 95236646d4fe2b63f60c744a398ac110.dir
-      size: 19391857513
+      md5: 1c7a29d4b8629b9e6b1b2216624ec481.dir
+      size: 20877326454
       nfiles: 23
     - path: ./src/computer_vision/preprocessing/final.py
       hash: md5
@@ -33,8 +33,8 @@ stages:
     outs:
     - path: ./data/3.final/ECDUY/
       hash: md5
-      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
-      size: 21240900911
+      md5: 506a9d2f274cc7f8d309235a44aac82c.dir
+      size: 22395033076
       nfiles: 112
   plot:
     cmd: uv run computer-vision plot
@@ -111,8 +111,8 @@ stages:
     deps:
     - path: ./data/3.final/ECDUY/
       hash: md5
-      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
-      size: 21240900911
+      md5: 506a9d2f274cc7f8d309235a44aac82c.dir
+      size: 22395033076
       nfiles: 112
     - path: ./src/computer_vision/dataset.py
       hash: md5
@@ -130,7 +130,7 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: tcn
+          model: darts_xgb
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
@@ -140,30 +140,30 @@ stages:
           - 50176
           - 7001
           - 18052
-        models.tcn:
-          loss: huber
-          optimizer: adam
-          random_seed: 42
-          broadcasting: true
-          max_steps: 200
+        models.darts_xgb:
+          lags: 96
+          lags_past_covariates:
+          output_chunk_length: 96
+          random_state: 42
+          multi_models: false
     outs:
     - path: ./output/train/
       hash: md5
-      md5: 6afe96e0f232a1d3515aa310340f0aaa.dir
-      size: 26938768
+      md5: 229ef3d211eed9f578587408e215663b.dir
+      size: 11302135
       nfiles: 1
   test:
     cmd: uv run computer-vision test
     deps:
     - path: ./data/3.final/ECDUY/
       hash: md5
-      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
-      size: 21240900911
+      md5: 506a9d2f274cc7f8d309235a44aac82c.dir
+      size: 22395033076
       nfiles: 112
     - path: ./output/train/
       hash: md5
-      md5: 6afe96e0f232a1d3515aa310340f0aaa.dir
-      size: 26938768
+      md5: 229ef3d211eed9f578587408e215663b.dir
+      size: 11302135
       nfiles: 1
     - path: ./src/computer_vision/dataset.py
       hash: md5
@@ -185,7 +185,7 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: tcn
+          model: darts_xgb
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
@@ -195,22 +195,22 @@ stages:
           - 50176
           - 7001
           - 18052
-        models.tcn:
-          loss: huber
-          optimizer: adam
-          random_seed: 42
-          broadcasting: true
-          max_steps: 200
+        models.darts_xgb:
+          lags: 96
+          lags_past_covariates:
+          output_chunk_length: 96
+          random_state: 42
+          multi_models: false
         test:
           update_params: true
-          end_date: '2020-10-31T23:45:00-03:00'
+          end_date: '2020-10-30T23:45:00-03:00'
     outs:
     - path: ./output/test/metrics.yaml
       hash: md5
-      md5: 89dbc5ba50f95f3a59390835ae52518b
-      size: 193
+      md5: 7f41a3955fa46244f2e7427143f8d784
+      size: 184
     - path: ./output/test/out/
       hash: md5
-      md5: c19b79adc3184145bf553d0af880d555.dir
-      size: 36006440
+      md5: 88127d0d3bc4b39ecf0ae2f2455688a2.dir
+      size: 35972425
       nfiles: 5
