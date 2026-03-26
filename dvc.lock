@@ -12,19 +12,23 @@ stages:
       hash: md5
       md5: 90ed92d1126ba94c4e52257531ea3bb3
       size: 1045
+    params:
+      params.yaml:
+        preprocessing:
+          to_wh: true
     outs:
     - path: ./data/2.interim/ECDUY/
       hash: md5
-      md5: 1c7a29d4b8629b9e6b1b2216624ec481.dir
-      size: 20877326454
+      md5: 95236646d4fe2b63f60c744a398ac110.dir
+      size: 19391857513
       nfiles: 23
   preprocessing-final:
     cmd: uv run computer-vision preprocessing final
     deps:
     - path: ./data/2.interim/ECDUY/
       hash: md5
-      md5: 1c7a29d4b8629b9e6b1b2216624ec481.dir
-      size: 20877326454
+      md5: 95236646d4fe2b63f60c744a398ac110.dir
+      size: 19391857513
       nfiles: 23
     - path: ./src/computer_vision/preprocessing/final.py
       hash: md5
@@ -33,8 +37,8 @@ stages:
     outs:
     - path: ./data/3.final/ECDUY/
       hash: md5
-      md5: 506a9d2f274cc7f8d309235a44aac82c.dir
-      size: 22395033076
+      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
+      size: 21240900911
       nfiles: 112
   plot:
     cmd: uv run computer-vision plot
@@ -111,8 +115,8 @@ stages:
     deps:
     - path: ./data/3.final/ECDUY/
       hash: md5
-      md5: 506a9d2f274cc7f8d309235a44aac82c.dir
-      size: 22395033076
+      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
+      size: 21240900911
       nfiles: 112
     - path: ./src/computer_vision/dataset.py
       hash: md5
@@ -120,8 +124,8 @@ stages:
       size: 3799
     - path: ./src/computer_vision/forecasters.py
       hash: md5
-      md5: 516806fb69f3fbe3690a9b276fe39fe2
-      size: 7307
+      md5: 88b00005a02dc1988715bfbae55a9f5c
+      size: 7057
     - path: ./src/computer_vision/train.py
       hash: md5
       md5: ab3382a977af9a43693d6377c4867e88
@@ -146,25 +150,25 @@ stages:
           random_seed: 42
           broadcasting: true
           max_steps: 200
-          local_scaler_type: standard
+          local_scaler_type: minmax
     outs:
     - path: ./output/train/
       hash: md5
-      md5: abd0b7ba32363e1f2e126b578f560977.dir
-      size: 32055664
+      md5: ade0e35b51ccb4ff67508ada7301b953.dir
+      size: 29263436
       nfiles: 1
   test:
     cmd: uv run computer-vision test
     deps:
     - path: ./data/3.final/ECDUY/
       hash: md5
-      md5: 506a9d2f274cc7f8d309235a44aac82c.dir
-      size: 22395033076
+      md5: a12f0a5d6d1fb9d388e84a9696cfe366.dir
+      size: 21240900911
       nfiles: 112
     - path: ./output/train/
       hash: md5
-      md5: abd0b7ba32363e1f2e126b578f560977.dir
-      size: 32055664
+      md5: ade0e35b51ccb4ff67508ada7301b953.dir
+      size: 29263436
       nfiles: 1
     - path: ./src/computer_vision/dataset.py
       hash: md5
@@ -172,8 +176,8 @@ stages:
       size: 3799
     - path: ./src/computer_vision/forecasters.py
       hash: md5
-      md5: 516806fb69f3fbe3690a9b276fe39fe2
-      size: 7307
+      md5: 88b00005a02dc1988715bfbae55a9f5c
+      size: 7057
     - path: ./src/computer_vision/metrics.py
       hash: md5
       md5: 7eb12fc0dbaed5169c71f18cafeff6e9
@@ -202,17 +206,17 @@ stages:
           random_seed: 42
           broadcasting: true
           max_steps: 200
-          local_scaler_type: standard
+          local_scaler_type: minmax
         test:
           update_params: true
           end_date: '2020-10-30T23:45:00-03:00'
     outs:
     - path: ./output/test/metrics.yaml
       hash: md5
-      md5: 6180876898cfed020981ba423ebf52fb
+      md5: be9a6ae8ed2d2b5fb42b9be9c8cabb98
       size: 171
     - path: ./output/test/out/
       hash: md5
-      md5: 18db88a567b59363e8d2d7cded7ce69d.dir
-      size: 35972865
+      md5: e1303bf4ec2b28a16d315b85ae1be7e2.dir
+      size: 35973265
       nfiles: 5

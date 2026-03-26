@@ -47,7 +47,7 @@ models:
     random_seed: 42
     broadcasting: true
     max_steps: 200
-    local_scaler_type: standard
+    local_scaler_type: minmax
 
   tcn:
     loss: huber
