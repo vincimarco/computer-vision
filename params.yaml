@@ -1,6 +1,6 @@
 general:
   fh: 24h
-  model: cnn3d
+  model: lstm
   seed: 42
   cutoff: "2020-09-01T00:00:00-03:00"
   step: 96
@@ -15,7 +15,7 @@ test:
   end_date: "2020-10-30T23:45:00-03:00"
 
 preprocessing:
-  to_wh: false
+  to_wh: true
 
 models:
   cnn3d:
@@ -47,6 +47,7 @@ models:
     random_seed: 42
     broadcasting: true
     max_steps: 200
+    local_scaler_type: standard
 
   tcn:
     loss: huber
@@ -54,6 +55,7 @@ models:
     random_seed: 42
     broadcasting: true
     max_steps: 200
+    local_scaler_type: standard
 
   cnn:
     epochs: 200
