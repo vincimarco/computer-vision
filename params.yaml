@@ -47,6 +47,7 @@ models:
     random_seed: 42
     broadcasting: true
     max_steps: 200
+    local_scaler_type: standard
 
   tcn:
     loss: huber
@@ -54,6 +55,7 @@ models:
     random_seed: 42
     broadcasting: true
     max_steps: 200
+    local_scaler_type: standard
 
   cnn:
     epochs: 200

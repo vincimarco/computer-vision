@@ -113,6 +113,7 @@ def create_lstm_forecaster(
     broadcasting: bool,
     optimizer: "str | keras.optimizers.Optimizer",
     max_steps: int,
+    local_scaler_type: str,
 ) -> NeuralForecastLSTM:
 
     import neuralforecast.losses.pytorch as nflosses
@@ -130,6 +131,7 @@ def create_lstm_forecaster(
 
     return NeuralForecastLSTM(
         freq="15min",
+        local_scaler_type=local_scaler_type,
         futr_exog_list=[
             "year",
             "month_of_year__sin",
@@ -156,6 +158,7 @@ def create_tcn_forecaster(
     broadcasting: bool,
     optimizer: "str | keras.optimizers.Optimizer",
     max_steps: int,
+    local_scaler_type: str,
 ) -> NeuralForecastTCN:
     import neuralforecast.losses.pytorch as nflosses
     import torch.optim
@@ -172,6 +175,7 @@ def create_tcn_forecaster(
 
     return NeuralForecastTCN(
         freq="15min",
+        local_scaler_type=local_scaler_type,
         futr_exog_list=[
             "year",
             "month_of_year__sin",
