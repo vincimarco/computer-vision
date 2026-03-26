@@ -167,22 +167,13 @@ def create_tcn_forecaster(
     return NeuralForecastTCN(
         freq="15min",
         local_scaler_type=local_scaler_type,
-        futr_exog_list=[
-            "year",
-            "month_of_year__sin",
-            "month_of_year__cos",
-            "day_of_week__sin",
-            "day_of_week__cos",
-            "hour_of_day__sin",
-            "hour_of_day__cos",
-            "is_holiday",
-        ],
         verbose_fit=True,
         verbose_predict=True,
         loss=losses[loss] if isinstance(loss, str) else loss,
         random_seed=random_seed,
         broadcasting=broadcasting,
         max_steps=max_steps,
+        learning_rate=1e-4,
     )
 
 
