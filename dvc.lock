@@ -203,14 +203,14 @@ stages:
           multi_models: false
         test:
           update_params: true
-          end_date: '2020-10-31T23:45:00-03:00'
+          end_date: '2020-10-30T23:45:00-03:00'
     outs:
     - path: ./output/test/metrics.yaml
       hash: md5
-      md5: 8849e6b14b54af75f4bed585b42e2b9a
-      size: 189
+      md5: 7f41a3955fa46244f2e7427143f8d784
+      size: 184
     - path: ./output/test/out/
       hash: md5
-      md5: 9418ad3e2316742821767dfe8667b285.dir
-      size: 36004715
+      md5: 88127d0d3bc4b39ecf0ae2f2455688a2.dir
+      size: 35972425
       nfiles: 5
