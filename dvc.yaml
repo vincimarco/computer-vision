@@ -6,6 +6,8 @@ stages:
       - ./src/computer_vision/preprocessing/interim.py
     outs:
       - ./data/2.interim/ECDUY/
+    params:
+      - preprocessing
 
   preprocessing-final:
     cmd: uv run computer-vision preprocessing final
