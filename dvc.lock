@@ -134,7 +134,7 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: lstm
+          model: cnn3d
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
@@ -144,18 +144,23 @@ stages:
           - 50176
           - 7001
           - 18052
-        models.lstm:
-          loss: huber
+        models.cnn3d:
+          epochs: 200
+          batch_size: 32
+          random_state: 42
+          loss: mse
+          metrics:
           optimizer: adam
-          random_seed: 42
-          broadcasting: true
-          max_steps: 200
-          local_scaler_type: minmax
+          kernel_width: 1h
+          dropout_rate: 0.2
+          sample_weights_function:
+          decay_rate: 0.01
+          window_size: 168h
     outs:
     - path: ./output/train/
       hash: md5
-      md5: ade0e35b51ccb4ff67508ada7301b953.dir
-      size: 29263436
+      md5: a44cc04d30602c010fe4f62c485f9074.dir
+      size: 25622230
       nfiles: 1
   test:
     cmd: uv run computer-vision test
@@ -167,8 +172,8 @@ stages:
       nfiles: 112
     - path: ./output/train/
       hash: md5
-      md5: ade0e35b51ccb4ff67508ada7301b953.dir
-      size: 29263436
+      md5: a44cc04d30602c010fe4f62c485f9074.dir
+      size: 25622230
       nfiles: 1
     - path: ./src/computer_vision/dataset.py
       hash: md5
@@ -190,7 +195,7 @@ stages:
       params.yaml:
         general:
           fh: 24h
-          model: lstm
+          model: cnn3d
           seed: 42
           cutoff: '2020-09-01T00:00:00-03:00'
           step: 96
@@ -200,23 +205,28 @@ stages:
           - 50176
           - 7001
           - 18052
-        models.lstm:
-          loss: huber
+        models.cnn3d:
+          epochs: 200
+          batch_size: 32
+          random_state: 42
+          loss: mse
+          metrics:
           optimizer: adam
-          random_seed: 42
-          broadcasting: true
-          max_steps: 200
-          local_scaler_type: minmax
+          kernel_width: 1h
+          dropout_rate: 0.2
+          sample_weights_function:
+          decay_rate: 0.01
+          window_size: 168h
         test:
-          update_params: true
+          update_params: false
           end_date: '2020-10-30T23:45:00-03:00'
     outs:
     - path: ./output/test/metrics.yaml
       hash: md5
-      md5: be9a6ae8ed2d2b5fb42b9be9c8cabb98
+      md5: 1cb0c9afd629ebf1e32b528c972c4950
       size: 171
     - path: ./output/test/out/
       hash: md5
-      md5: e1303bf4ec2b28a16d315b85ae1be7e2.dir
-      size: 35973265
+      md5: a91d021047ef89a24afd8781596c3ef3.dir
+      size: 35972920
       nfiles: 5
