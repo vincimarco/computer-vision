@@ -77,6 +77,14 @@ services:
   # ---------------------------------------------------------------------------- #
   #                                   SERVICES                                   #
   # ---------------------------------------------------------------------------- #
+  forecaster:
+    image: m.vinci/forecaster
+    container_name: forecaster
+    volumes:
+      - ./data/forecaster/cnn3d.zip:/forecaster/cnn3d.zip:ro
+    environment:
+      - FORECASTER_MODEL_NAME=cnn3d
+
   # MQTT Broker
   mosquitto:
     image: eclipse-mosquitto:2.0
