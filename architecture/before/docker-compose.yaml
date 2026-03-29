@@ -16,7 +16,7 @@ services:
       - METER_MQTT_USERNAME=meter
       - METER_MQTT_PASSWORD=meter
     volumes:
-      - ./meter/115138.parquet:/meter/data/115138.parquet:ro
+      - ./data/meter/115138.parquet:/meter/data/115138.parquet:ro
 
   meter-15805:
     image: m.vinci/meter
@@ -30,7 +30,7 @@ services:
       - METER_MQTT_USERNAME=meter
       - METER_MQTT_PASSWORD=meter
     volumes:
-      - ./meter/15805.parquet:/meter/data/15805.parquet:ro
+      - ./data/meter/15805.parquet:/meter/data/15805.parquet:ro
 
   meter-50176:
     image: m.vinci/meter
@@ -44,7 +44,7 @@ services:
       - METER_MQTT_USERNAME=meter
       - METER_MQTT_PASSWORD=meter
     volumes:
-      - ./meter/50176.parquet:/meter/data/50176.parquet:ro
+      - ./data/meter/50176.parquet:/meter/data/50176.parquet:ro
 
   meter-7001:
     image: m.vinci/meter
@@ -58,7 +58,7 @@ services:
       - METER_MQTT_USERNAME=meter
       - METER_MQTT_PASSWORD=meter
     volumes:
-      - ./meter/7001.parquet:/meter/data/7001.parquet:ro
+      - ./data/meter/7001.parquet:/meter/data/7001.parquet:ro
 
   meter-18052:
     image: m.vinci/meter
@@ -72,7 +72,7 @@ services:
       - METER_MQTT_USERNAME=meter
       - METER_MQTT_PASSWORD=meter
     volumes:
-      - ./meter/18052.parquet:/meter/data/18052.parquet:ro
+      - ./data/meter/18052.parquet:/meter/data/18052.parquet:ro
 
   # ---------------------------------------------------------------------------- #
   #                                   SERVICES                                   #
