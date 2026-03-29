@@ -94,6 +94,7 @@ services:
   # Node-RED
   node-red:
     image: nodered/node-red:latest
+    container_name: nodered
     volumes:
       - ./data/node-red:/data
     networks:
@@ -103,6 +104,7 @@ services:
 
   postgres:
     image: postgres:15
+    container_name: postgres
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
@@ -117,6 +119,7 @@ services:
   # Grafana
   grafana:
     image: grafana/grafana:latest
+    container_name: grafana
     environment:
       - GF_SECURITY_ADMIN_USER=user
       - GF_SECURITY_ADMIN_PASSWORD=password
@@ -129,7 +132,6 @@ services:
 
 volumes:
   mosquitto-data:
-  node-red-data:
   postgres-data:
   grafana-data:
 
