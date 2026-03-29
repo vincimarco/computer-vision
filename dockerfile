@@ -10,4 +10,4 @@ RUN uv sync --frozen --no-install-project
 COPY . .
 RUN uv sync --frozen
 
-CMD ["uv", "run", "forecaster"]
+CMD ["uv", "run", "computer-vision", "forecast"]

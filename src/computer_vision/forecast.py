@@ -1,19 +1,13 @@
-import os
 import pathlib
 
 from loguru import logger
 from sktime.forecasting.compose import ForecastingPipeline
 
 
-class Config:
-    def __init__(self):
-        self.model_name = os.getenv("FORECASTER_MODEL_NAME", "model")
+def forecast():
+    print("Forecasting...")
 
-
-def main() -> None:
-    config = Config()
-
-    forecaster = load_forecaster(model_name=config.model_name)
+    forecaster = load_forecaster(model_name="cnn3d")
     print(forecaster.cutoff)
 
 

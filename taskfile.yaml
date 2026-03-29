@@ -18,6 +18,6 @@ tasks:
       - docker build -t m.vinci/meter .
 
   build-forecaster:
-    dir: ./packages/forecaster
+    dir: .
     cmds:
       - docker build -t m.vinci/forecaster .

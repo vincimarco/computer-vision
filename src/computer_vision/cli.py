@@ -52,3 +52,10 @@ def export():
     from .export import export
 
     export()
+
+
+@app.command()
+def forecast():
+    from .forecast import forecast
+
+    forecast()
