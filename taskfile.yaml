@@ -10,9 +10,14 @@ tasks:
     dir: ./architecture/before
     cmds:
       - docker compose up -d
-    deps: [build-meter]
+    deps: [build-meter, build-forecaster]
 
   build-meter:
     dir: ./packages/meter
     cmds:
       - docker build -t m.vinci/meter .
+
+  build-forecaster:
+    dir: ./packages/forecaster
+    cmds:
+      - docker build -t m.vinci/forecaster .
