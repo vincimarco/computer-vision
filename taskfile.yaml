@@ -5,3 +5,14 @@ tasks:
     dir: ./containers
     cmds:
       - ./generate_certs.sh
+
+  architecture-before-up:
+    dir: ./architecture/before
+    cmds:
+      - docker compose up -d
+    deps: [build-meter]
+
+  build-meter:
+    dir: ./packages/meter
+    cmds:
+      - docker build -t m.vinci/meter .
