@@ -2,6 +2,7 @@ import json
 import os
 import pathlib
 import ssl
+import time
 
 import paho.mqtt.client as paho
 import polars as pl
@@ -13,8 +14,12 @@ from paho.mqtt.enums import MQTTProtocolVersion
 # ---------------------------------------------------------------------------- #
 
 
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc, properties):
     logger.info("Connected with result code " + str(rc))
+
+
+def on_publish(client, userdata, mid):
+    logger.debug(f"Message {mid} published successfully.")
 
 
 # ---------------------------------------------------------------------------- #
@@ -28,7 +33,6 @@ class Config:
 
         self.mqtt_host = os.environ["METER_MQTT_HOST"]
         self.mqtt_port = int(os.environ["METER_MQTT_PORT"])
-        self.mqtt_topic = os.environ["METER_MQTT_TOPIC"]
         self.mqtt_username = os.environ["METER_MQTT_USERNAME"]
         self.mqtt_password = os.environ["METER_MQTT_PASSWORD"]
 
@@ -53,6 +57,7 @@ def main() -> None:
     logger.info("Setting up MQTT client...")
     client = paho.Client(protocol=MQTTProtocolVersion.MQTTv5)
     client.on_connect = on_connect
+    client.on_publish = on_publish
 
     if config.tls_credentials_available():
         logger.info("Setting TLS...")
@@ -81,10 +86,12 @@ def main() -> None:
     client.loop_start()
 
     for row in meter_data.iter_rows(named=True):
+        logger.debug(f"Publishing row: {row}")
         client.publish(
-            config.mqtt_topic,
+            f"/meter/{config.meter_id}",
             json.dumps(row, default=str),
         )
+        time.sleep(0.1)
 
     client.loop_stop()
     client.disconnect()
