@@ -87,6 +87,7 @@ def main() -> None:
 
     for row in meter_data.iter_rows(named=True):
         logger.debug(f"Publishing row: {row}")
+        row["id"] = config.meter_id
         client.publish(
             f"/meter/{config.meter_id}",
             json.dumps(row, default=str),
