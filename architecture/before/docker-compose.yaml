@@ -95,7 +95,7 @@ services:
   node-red:
     image: nodered/node-red:latest
     volumes:
-      - node-red-data:/data
+      - ./data/node-red:/data
     networks:
       - energy_net
     ports:
