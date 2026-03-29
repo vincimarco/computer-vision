@@ -1,9 +1,86 @@
 name: computer-vision_before
 
 services:
+  # ---------------------------------------------------------------------------- #
+  #                                    METERS                                    #
+  # ---------------------------------------------------------------------------- #
+  meter-115138:
+    image: m.vinci/meter
+    container_name: meter-115138
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=115138
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./meter/115138.parquet:/meter/data/115138.parquet:ro
+
+  meter-15805:
+    image: m.vinci/meter
+    container_name: meter-15805
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=15805
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./meter/15805.parquet:/meter/data/15805.parquet:ro
+
+  meter-50176:
+    image: m.vinci/meter
+    container_name: meter-50176
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=50176
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./meter/50176.parquet:/meter/data/50176.parquet:ro
+
+  meter-7001:
+    image: m.vinci/meter
+    container_name: meter-7001
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=7001
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./meter/7001.parquet:/meter/data/7001.parquet:ro
+
+  meter-18052:
+    image: m.vinci/meter
+    container_name: meter-18052
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=18052
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./meter/18052.parquet:/meter/data/18052.parquet:ro
+
+  # ---------------------------------------------------------------------------- #
+  #                                   SERVICES                                   #
+  # ---------------------------------------------------------------------------- #
   # MQTT Broker
   mosquitto:
     image: eclipse-mosquitto:2.0
+    container_name: mosquitto
     ports:
       - "1883:1883" # MQTT
     volumes:
