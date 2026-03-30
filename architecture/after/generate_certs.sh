@@ -90,6 +90,9 @@ openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=IP:127.0.0.1,DNS:localhost")) \
   # -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $POSTGRES_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL  -out $POSTGRES_CERT -days 365
+mkdir -p ./config/postgres/certs && cp -rf $CA_CERT "$_"
+mkdir -p ./config/postgres/certs && cp -rf $POSTGRES_KEY "$_"
+mkdir -p ./config/postgres/certs && cp -rf $POSTGRES_CERT "$_"
 
 # GRAFANA
 echo $'\nGenerating Grafana Certificate...'
