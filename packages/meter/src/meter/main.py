@@ -92,7 +92,7 @@ def main() -> None:
             f"/meter/{config.meter_id}",
             json.dumps(row, default=str),
         )
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     client.loop_stop()
     client.disconnect()
