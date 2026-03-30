@@ -149,11 +149,10 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=user
       - GF_SECURITY_ADMIN_PASSWORD=password
-      - GF_SERVER_HTTP_PORT=3010
     volumes:
       - grafana-data:/var/lib/grafana
     ports:
-      - "3010:3010"
+      - "3000:3000"
     networks:
       - energy_net
 
