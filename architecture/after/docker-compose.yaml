@@ -105,6 +105,7 @@ services:
     ports:
       - "8883:8883" # MQTT-TLS
     volumes:
+      - ./config/mosquitto/acl:/mosquitto/config/acl:ro
       - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - ./config/mosquitto/certs/:/mosquitto/certs/:ro
       - mosquitto-data:/mosquitto/data
