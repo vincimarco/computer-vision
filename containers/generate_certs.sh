@@ -12,7 +12,7 @@ MOSQUITTO_KEY="certs/mosquitto.key"
 MOSQUITTO_CERT="certs/mosquitto.crt"
 
 NODERED_KEY="certs/nodered.key"
-NODERED_CERT="certs/mosquitto.crt"
+NODERED_CERT="certs/nodered.crt"
 
 POSTGRES_KEY="certs/postgres.key"
 POSTGRES_CERT="certs/postgres.crt"
