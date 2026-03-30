@@ -31,10 +31,10 @@ class Config:
     def __init__(self):
         self.meter_id = os.environ["METER_ID"]
 
-        self.mqtt_host = os.environ["METER_MQTT_HOST"]
-        self.mqtt_port = int(os.environ["METER_MQTT_PORT"])
-        self.mqtt_username = os.environ["METER_MQTT_USERNAME"]
-        self.mqtt_password = os.environ["METER_MQTT_PASSWORD"]
+        self.mqtt_host = os.environ.get("METER_MQTT_HOST", "localhost")
+        self.mqtt_port = int(os.environ.get("METER_MQTT_PORT", "1883"))
+        self.mqtt_username = os.environ.get("METER_MQTT_USERNAME", None)
+        self.mqtt_password = os.environ.get("METER_MQTT_PASSWORD", None)
 
         self.ca_cert = os.environ.get("METER_CA_CERT")
         self.certfile = os.environ.get("METER_CERTFILE")
