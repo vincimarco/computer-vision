@@ -8,16 +8,33 @@ CA_SERIAL="certs/ca.srl"
 TEST_CLIENT_KEY="certs/testclient.key"
 TEST_CLIENT_CERT="certs/testclient.crt"
 
-METER_KEY="certs/meter.key"
-METER_CERT="certs/meter.crt"
-
 MOSQUITTO_KEY="certs/mosquitto.key"
 MOSQUITTO_CERT="certs/mosquitto.crt"
 
-# CLIENT_KEY="certs/client.key"
-# CLIENT_CERT="certs/client.crt"
-# SERVER_KEY="certs/server.key"
-# SERVER_CERT="certs/server.crt"
+NODERED_KEY="certs/nodered.key"
+NODERED_CERT="certs/mosquitto.crt"
+
+POSTGRES_KEY="certs/postgres.key"
+POSTGRES_CERT="certs/postgres.crt"
+
+GRAFANA_KEY="certs/grafana.key"
+GRAFANA_CERT="certs/grafana.crt"
+
+METER_115138_KEY="certs/meter-115138.key"
+METER_115138_CERT="certs/meter-115138.crt"
+
+METER_15805_KEY="certs/meter-15805.key"
+METER_15805_CERT="certs/meter-15805.crt"
+
+METER_50176_KEY="certs/meter-50176.key"
+METER_50176_CERT="certs/meter-50176.crt"
+
+METER_7001_KEY="certs/meter-7001.key"
+METER_7001_CERT="certs/meter-7001.crt"
+
+METER_18052_KEY="certs/meter-18052.key"
+METER_18052_CERT="certs/meter-18052.crt"
+
 
 echo "00" > $CA_SERIAL
 
@@ -35,41 +52,89 @@ openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $TEST_CLIENT_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $TEST_CLIENT_CERT -days 365
 
-
-# METER
-echo $'\nGenerating Meter Certificate...'
-openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
-  -keyout $METER_KEY -out $METER_CERT \
-  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-sn-12345678" \
-  -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
-openssl x509 -req -in $METER_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_CERT -days 365
-
 # MOSQUITTO
 echo $'\nGenerating Mosquitto Certificate...'
 openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -keyout $MOSQUITTO_KEY -out $MOSQUITTO_CERT \
-  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=localhost" \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=mosquitto" \
   -reqexts SAN \
   -extensions SAN \
   -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=IP:127.0.0.1,DNS:localhost")) \
   # -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $MOSQUITTO_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL  -out $MOSQUITTO_CERT -days 365
 
-# # 2. Generate Client Certificate
-# echo "Generating Client Cert..."
-# openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
-#   -keyout $CLIENT_KEY -out $CLIENT_CERT \
-#   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=NodeREDClient"
-# openssl x509 -req -in $CLIENT_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL  -out $CLIENT_CERT -days 365
+# NODE-RED
+echo $'\nGenerating Node-RED Certificate...'
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -keyout $NODERED_KEY -out $NODERED_CERT \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=localhost" \
+  -reqexts SAN \
+  -extensions SAN \
+  -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=IP:127.0.0.1,DNS:localhost")) \
+  # -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+openssl x509 -req -in $NODERED_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL  -out $NODERED_CERT -days 365
 
-# # 3. Generate Server Certificate
-# echo "Generating Server Cert for Localhost..."
-# openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
-#   -keyout $SERVER_KEY -out $SERVER_CERT \
-#   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=localhost" \
-#   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+# POSTGRES
+echo $'\nGenerating Postgres Certificate...'
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -keyout $POSTGRES_KEY -out $POSTGRES_CERT \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=postgres" \
+  -reqexts SAN \
+  -extensions SAN \
+  -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=IP:127.0.0.1,DNS:localhost")) \
+  # -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+openssl x509 -req -in $POSTGRES_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL  -out $POSTGRES_CERT -days 365
 
-# # Sign the server cert with the Root CA
-# openssl x509 -req -in $SERVER_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial  -out $SERVER_CERT -days 365
+# GRAFANA
+echo $'\nGenerating Grafana Certificate...'
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -keyout $GRAFANA_KEY -out $GRAFANA_CERT \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=grafana" \
+  -reqexts SAN \
+  -extensions SAN \
+  -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=IP:127.0.0.1,DNS:localhost")) \
+  # -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+openssl x509 -req -in $GRAFANA_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL  -out $GRAFANA_CERT -days 365
+
+# METER 115138
+echo $'\nGenerating Meter-115138 Certificate...'
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -keyout $METER_115138_KEY -out $METER_115138_CERT \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-115138" \
+  -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+openssl x509 -req -in $METER_115138_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_115138_CERT -days 365
+
+# METER 15805
+echo $'\nGenerating Meter-15805 Certificate...'
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -keyout $METER_15805_KEY -out $METER_15805_CERT \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-15805" \
+  -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+openssl x509 -req -in $METER_15805_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_15805_CERT -days 365
+
+# METER 50176
+echo $'\nGenerating Meter-50176 Certificate...'
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -keyout $METER_50176_KEY -out $METER_50176_CERT \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-50176" \
+  -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+openssl x509 -req -in $METER_50176_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_50176_CERT -days 365
+
+# METER 7001
+echo $'\nGenerating Meter-7001 Certificate...'
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -keyout $METER_7001_KEY -out $METER_7001_CERT \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-7001" \
+  -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+openssl x509 -req -in $METER_7001_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_7001_CERT -days 365
+
+# METER 18052
+echo $'\nGenerating Meter-18052 Certificate...'
+openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -keyout $METER_18052_KEY -out $METER_18052_CERT \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-18052" \
+  -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+openssl x509 -req -in $METER_18052_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_18052_CERT -days 365
+
 
 echo $'\nCertificates regenerated for localhost.'

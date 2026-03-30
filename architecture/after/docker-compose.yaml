@@ -1,0 +1,160 @@
+name: computer-vision_before
+
+services:
+  # ---------------------------------------------------------------------------- #
+  #                                    METERS                                    #
+  # ---------------------------------------------------------------------------- #
+  meter-115138:
+    image: m.vinci/meter
+    container_name: meter-115138
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=115138
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=8883
+      - METER_CA_CERT=/meter/certs/ca.crt
+      - METER_CERTFILE=/meter/certs/meter-115138.crt
+      - METER_KEYFILE=/meter/certs/meter-115138.key
+    volumes:
+      - ./data/meter/115138.parquet:/meter/data/115138.parquet:ro
+      - ./config/meter-115138/ca.crt:/meter/certs/ca.crt
+      - ./config/meter-115138/meter-115138.key:/meter/certs/meter-115138.key:ro
+      - ./config/meter-115138/meter-115138.crt:/meter/certs/meter-115138.crt:ro
+
+  meter-15805:
+    image: m.vinci/meter
+    container_name: meter-15805
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=15805
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=8883
+      - METER_CA_CERT=/meter/certs/ca.crt
+      - METER_CERTFILE=/meter/certs/meter-15805.crt
+      - METER_KEYFILE=/meter/certs/meter-15805.key
+    volumes:
+      - ./data/meter/15805.parquet:/meter/data/15805.parquet:ro
+      - ./config/meter-15805/ca.crt:/meter/certs/ca.crt
+      - ./config/meter-15805/meter-15805.key:/meter/certs/meter-15805.key:ro
+      - ./config/meter-15805/meter-15805.crt:/meter/certs/meter-15805.crt:ro
+
+  meter-50176:
+    image: m.vinci/meter
+    container_name: meter-50176
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=50176
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=8883
+      - METER_CA_CERT=/meter/certs/ca.crt
+      - METER_CERTFILE=/meter/certs/meter-50176.crt
+      - METER_KEYFILE=/meter/certs/meter-50176.key
+    volumes:
+      - ./data/meter/50176.parquet:/meter/data/50176.parquet:ro
+      - ./config/meter-50176/ca.crt:/meter/certs/ca.crt
+      - ./config/meter-50176/meter-50176.key:/meter/certs/meter-50176.key:ro
+      - ./config/meter-50176/meter-50176.crt:/meter/certs/meter-50176.crt:ro
+
+  meter-7001:
+    image: m.vinci/meter
+    container_name: meter-7001
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=7001
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=8883
+      - METER_CA_CERT=/meter/certs/ca.crt
+      - METER_CERTFILE=/meter/certs/meter-7001.crt
+      - METER_KEYFILE=/meter/certs/meter-7001.key
+    volumes:
+      - ./data/meter/7001.parquet:/meter/data/7001.parquet:ro
+      - ./config/meter-7001/ca.crt:/meter/certs/ca.crt
+      - ./config/meter-7001/meter-7001.key:/meter/certs/meter-7001.key:ro
+      - ./config/meter-7001/meter-7001.crt:/meter/certs/meter-7001.crt:ro
+
+  meter-18052:
+    image: m.vinci/meter
+    container_name: meter-18052
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=18052
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=8883
+      - METER_CA_CERT=/meter/certs/ca.crt
+      - METER_CERTFILE=/meter/certs/meter-18052.crt
+      - METER_KEYFILE=/meter/certs/meter-18052.key
+    volumes:
+      - ./data/meter/18052.parquet:/meter/data/18052.parquet:ro
+      - ./config/meter-18052/ca.crt:/meter/certs/ca.crt
+      - ./config/meter-18052/meter-18052.key:/meter/certs/meter-18052.key:ro
+      - ./config/meter-18052/meter-18052.crt:/meter/certs/meter-18052.crt:ro
+
+  # ---------------------------------------------------------------------------- #
+  #                                   SERVICES                                   #
+  # ---------------------------------------------------------------------------- #
+
+  # MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    ports:
+      - "8883:8883" # MQTT-TLS
+    volumes:
+      - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./config/mosquitto/certs/:/mosquitto/certs/:ro
+      - mosquitto-data:/mosquitto/data
+    networks:
+      - energy_net
+
+  # Node-RED
+  node-red:
+    image: nodered/node-red:latest
+    container_name: nodered
+    volumes:
+      - ./data/node-red:/data
+    networks:
+      - energy_net
+    ports:
+      - "1880:1880"
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - energy_net
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=user
+      - GF_SECURITY_ADMIN_PASSWORD=password
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - energy_net
+
+volumes:
+  mosquitto-data:
+  postgres-data:
+  grafana-data:
+
+networks:
+  energy_net:
+    driver: bridge
