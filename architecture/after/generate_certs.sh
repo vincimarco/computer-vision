@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir certs
+
 # Configuration
 CA_KEY="certs/ca.key"
 CA_CERT="certs/ca.crt"
@@ -62,9 +64,9 @@ openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=IP:127.0.0.1,DNS:localhost")) \
   # -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $MOSQUITTO_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL  -out $MOSQUITTO_CERT -days 365
-cp -rf $CA_CERT ./config/mosquitto/certs/ca.crt
-cp -rf $MOSQUITTO_KEY ./config/mosquitto/certs/mosquitto.key
-cp -rf $MOSQUITTO_CERT ./config/mosquitto/certs/mosquitto.crt
+mkdir -p ./config/mosquitto/certs && cp -rf $CA_CERT "$_"
+mkdir -p ./config/mosquitto/certs && cp -rf $MOSQUITTO_KEY "$_"
+mkdir -p ./config/mosquitto/certs && cp -rf $MOSQUITTO_CERT "$_"
 
 
 # NODE-RED
@@ -107,9 +109,9 @@ openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-115138" \
   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $METER_115138_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_115138_CERT -days 365
-cp -rf $CA_CERT ./config/meter-115138/ca.crt
-cp -rf $METER_115138_KEY ./config/meter-115138/meter-115138.key
-cp -rf $METER_115138_CERT ./config/meter-115138/meter-115138.crt
+mkdir -p ./config/meter-115138 && cp -rf $CA_CERT "$_"
+mkdir -p ./config/meter-115138 && cp -rf $METER_115138_KEY "$_"
+mkdir -p ./config/meter-115138 && cp -rf $METER_115138_CERT "$_"
 
 # METER 15805
 echo $'\nGenerating Meter-15805 Certificate...'
@@ -118,9 +120,9 @@ openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-15805" \
   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $METER_15805_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_15805_CERT -days 365
-cp -rf $CA_CERT ./config/meter-15805/ca.crt
-cp -rf $METER_15805_KEY ./config/meter-15805/meter-15805.key
-cp -rf $METER_15805_CERT ./config/meter-15805/meter-15805.crt
+mkdir -p ./config/meter-15805 && cp -rf $CA_CERT "$_"
+mkdir -p ./config/meter-15805 && cp -rf $METER_15805_KEY "$_"
+mkdir -p ./config/meter-15805 && cp -rf $METER_15805_CERT "$_"
 
 # METER 50176
 echo $'\nGenerating Meter-50176 Certificate...'
@@ -129,9 +131,9 @@ openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-50176" \
   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $METER_50176_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_50176_CERT -days 365
-cp -rf $CA_CERT ./config/meter-50176/ca.crt
-cp -rf $METER_50176_KEY ./config/meter-50176/meter-50176.key
-cp -rf $METER_50176_CERT ./config/meter-50176/meter-50176.crt
+mkdir -p ./config/meter-50176 && cp -rf $CA_CERT "$_"
+mkdir -p ./config/meter-50176 && cp -rf $METER_50176_KEY "$_"
+mkdir -p ./config/meter-50176 && cp -rf $METER_50176_CERT "$_"
 
 # METER 7001
 echo $'\nGenerating Meter-7001 Certificate...'
@@ -140,9 +142,9 @@ openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-7001" \
   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $METER_7001_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_7001_CERT -days 365
-cp -rf $CA_CERT ./config/meter-7001/ca.crt
-cp -rf $METER_7001_KEY ./config/meter-7001/meter-7001.key
-cp -rf $METER_7001_CERT ./config/meter-7001/meter-7001.crt
+mkdir -p ./config/meter-7001 && cp -rf $CA_CERT "$_"
+mkdir -p ./config/meter-7001 && cp -rf $METER_7001_KEY "$_"
+mkdir -p ./config/meter-7001 && cp -rf $METER_7001_CERT "$_"
 
 # METER 18052
 echo $'\nGenerating Meter-18052 Certificate...'
@@ -151,8 +153,8 @@ openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=meter-18052" \
   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $METER_18052_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $METER_18052_CERT -days 365
-cp -rf $CA_CERT ./config/meter-18052/ca.crt
-cp -rf $METER_18052_KEY ./config/meter-18052/meter-18052.key
-cp -rf $METER_18052_CERT ./config/meter-18052/meter-18052.crt
+mkdir -p ./config/meter-18052 && cp -rf $CA_CERT "$_"
+mkdir -p ./config/meter-18052 && cp -rf $METER_18052_KEY "$_"
+mkdir -p ./config/meter-18052 && cp -rf $METER_18052_CERT "$_"
 
 echo $'\nCertificates regenerated for localhost.'
