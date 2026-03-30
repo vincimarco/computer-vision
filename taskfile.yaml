@@ -9,13 +9,13 @@ tasks:
   architecture-before-up:
     dir: ./architecture/before
     cmds:
-      - docker compose up -d
+      - docker compose up -d --build
     deps: [build-meter]
 
   architecture-after-up:
     dir: ./architecture/after
     cmds:
-      - docker compose up -d
+      - docker compose up -d --build
     deps: [build-meter]
 
   build-meter:
