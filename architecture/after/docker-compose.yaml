@@ -156,6 +156,24 @@ services:
     networks:
       - energy_net
 
+  wireshark:
+    image: lscr.io/linuxserver/wireshark:latest
+    container_name: wireshark
+    cap_add:
+      - NET_ADMIN
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./config/wireshark:/config
+    ports:
+      - 3001:3000 #optional
+      - 3002:3001 #optional
+    shm_size: "1gb"
+    restart: unless-stopped
+
 volumes:
   mosquitto-data:
   postgres-data:
