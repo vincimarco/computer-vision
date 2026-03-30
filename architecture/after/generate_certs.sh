@@ -50,7 +50,7 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -nodes \
 echo $'\nGenerating Test Client Certificate...'
 openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -keyout $TEST_CLIENT_KEY -out $TEST_CLIENT_CERT \
-  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=client" \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=user" \
   -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
 openssl x509 -req -in $TEST_CLIENT_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_SERIAL -out $TEST_CLIENT_CERT -days 365
 
@@ -67,7 +67,6 @@ openssl x509 -req -in $MOSQUITTO_CERT -CA $CA_CERT -CAkey $CA_KEY -CAserial $CA_
 mkdir -p ./config/mosquitto/certs && cp -rf $CA_CERT "$_"
 mkdir -p ./config/mosquitto/certs && cp -rf $MOSQUITTO_KEY "$_"
 mkdir -p ./config/mosquitto/certs && cp -rf $MOSQUITTO_CERT "$_"
-
 
 # NODE-RED
 echo $'\nGenerating Node-RED Certificate...'
