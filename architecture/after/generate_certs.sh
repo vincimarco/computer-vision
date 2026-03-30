@@ -71,7 +71,7 @@ cp -rf $MOSQUITTO_CERT ./config/mosquitto/certs/mosquitto.crt
 echo $'\nGenerating Node-RED Certificate...'
 openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
   -keyout $NODERED_KEY -out $NODERED_CERT \
-  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=localhost" \
+  -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=nodered" \
   -reqexts SAN \
   -extensions SAN \
   -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=IP:127.0.0.1,DNS:localhost")) \
