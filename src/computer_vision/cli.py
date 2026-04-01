@@ -45,3 +45,17 @@ def plot():
     from .plot import plot
 
     plot()
+
+
+@app.command()
+def export():
+    from .export import export
+
+    export()
+
+
+@app.command()
+def forecast():
+    from .forecast import forecast
+
+    forecast()

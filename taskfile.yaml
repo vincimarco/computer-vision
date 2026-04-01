@@ -2,6 +2,28 @@ version: "3.8"
 
 tasks:
   certs:
-    dir: ./containers
+    dir: ./architecture/after
     cmds:
       - ./generate_certs.sh
+
+  architecture-before-up:
+    dir: ./architecture/before
+    cmds:
+      - docker compose up -d --build
+    deps: [build-meter]
+
+  architecture-after-up:
+    dir: ./architecture/after
+    cmds:
+      - docker compose up -d --build
+    deps: [build-meter]
+
+  build-meter:
+    dir: ./packages/meter
+    cmds:
+      - docker build -t m.vinci/meter .
+
+  build-forecaster:
+    dir: .
+    cmds:
+      - docker build -t m.vinci/forecaster .

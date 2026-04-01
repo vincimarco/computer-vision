@@ -1,0 +1,148 @@
+name: computer-vision_before
+
+services:
+  # ---------------------------------------------------------------------------- #
+  #                                    METERS                                    #
+  # ---------------------------------------------------------------------------- #
+  meter-115138:
+    image: m.vinci/meter
+    container_name: meter-115138
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=115138
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./data/meter/115138.parquet:/meter/data/115138.parquet:ro
+
+  meter-15805:
+    image: m.vinci/meter
+    container_name: meter-15805
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=15805
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./data/meter/15805.parquet:/meter/data/15805.parquet:ro
+
+  meter-50176:
+    image: m.vinci/meter
+    container_name: meter-50176
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=50176
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./data/meter/50176.parquet:/meter/data/50176.parquet:ro
+
+  meter-7001:
+    image: m.vinci/meter
+    container_name: meter-7001
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=7001
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./data/meter/7001.parquet:/meter/data/7001.parquet:ro
+
+  meter-18052:
+    image: m.vinci/meter
+    container_name: meter-18052
+    networks:
+      - energy_net
+    environment:
+      - METER_ID=18052
+      - METER_MQTT_HOST=mosquitto
+      - METER_MQTT_PORT=1883
+      - METER_MQTT_USERNAME=meter
+      - METER_MQTT_PASSWORD=meter
+    volumes:
+      - ./data/meter/18052.parquet:/meter/data/18052.parquet:ro
+
+  # ---------------------------------------------------------------------------- #
+  #                                   SERVICES                                   #
+  # ---------------------------------------------------------------------------- #
+  forecaster:
+    image: m.vinci/forecaster
+    container_name: forecaster
+    volumes:
+      - ./data/forecaster/cnn3d.zip:/forecaster/cnn3d.zip:ro
+    environment:
+      - FORECASTER_MODEL_NAME=cnn3d
+
+  # MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    ports:
+      - "1883:1883" # MQTT
+    volumes:
+      - ./config/mosquitto/passwd:/mosquitto/config/passwd
+      - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto-data:/mosquitto/data
+      # - mosquitto-conf:/mosquitto/config
+    networks:
+      - energy_net
+
+  # Node-RED
+  node-red:
+    image: nodered/node-red:latest
+    container_name: nodered
+    volumes:
+      - ./data/node-red:/data
+    networks:
+      - energy_net
+    ports:
+      - "1880:1880"
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - energy_net
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=user
+      - GF_SECURITY_ADMIN_PASSWORD=password
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - energy_net
+
+volumes:
+  mosquitto-data:
+  postgres-data:
+  grafana-data:
+
+networks:
+  energy_net:
+    driver: bridge
