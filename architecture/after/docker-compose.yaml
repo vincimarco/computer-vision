@@ -118,6 +118,7 @@ services:
     container_name: nodered
     volumes:
       - ./data/node-red:/data
+      - ./config/nodered/certs:/certs
     networks:
       - energy_net
     ports:
@@ -136,6 +137,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./config/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./config/postgres/certs/ca.crt:/var/lib/postgresql/ca.crt
       - ./config/postgres/certs/postgres.crt:/var/lib/postgresql/postgres.crt
       - ./config/postgres/certs/postgres.key:/var/lib/postgresql/postgres.key
@@ -151,6 +153,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=password
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./config/grafana/certs:/home/grafana/certs
     ports:
       - "3000:3000"
     networks:
