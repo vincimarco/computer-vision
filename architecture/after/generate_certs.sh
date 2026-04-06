@@ -46,7 +46,7 @@ for svc in "${services[@]}"; do
   generate_cert "$key" "$cert" "config/$svc.conf" \
 
   mkdir -p "./config/${svc}/certs"
-  cp -f "$CA_CERT" "$key" "$cert" "./config/${svc}/certs/"
+  sudo cp -f "$CA_CERT" "$key" "$cert" "./config/${svc}/certs/"
 done
 
 meters=(115138 15805 50176 7001 18052)
@@ -58,7 +58,7 @@ for meter in "${meters[@]}"; do
   generate_cert "$key" "$cert" "config/meter-$meter.conf" \
 
   mkdir -p "./config/meter-${meter}"
-  cp -f "$CA_CERT" "$key" "$cert" "./config/meter-${meter}/"
+  sudo cp -f "$CA_CERT" "$key" "$cert" "./config/meter-${meter}/"
 done
 
 echo $'\nCertificates regenerated for localhost.'
