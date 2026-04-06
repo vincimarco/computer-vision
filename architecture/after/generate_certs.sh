@@ -37,7 +37,7 @@ TEST_CLIENT_CERT="certs/testclient.crt"
 echo $'\nGenerating Test Client Certificate...'
 generate_cert "$TEST_CLIENT_KEY" "$TEST_CLIENT_CERT" "config/testclient.conf"
 
-services=(mosquitto nodered postgres grafana)
+services=(mosquitto nodered postgres grafana modello-cnn3d)
 for svc in "${services[@]}"; do
   key="certs/${svc}.key"
   cert="certs/${svc}.crt"
