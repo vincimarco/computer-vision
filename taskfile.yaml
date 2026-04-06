@@ -27,3 +27,18 @@ tasks:
     dir: .
     cmds:
       - docker build -t m.vinci/forecaster .
+
+  run-forecast:
+    dir: .
+    cmds:
+      - uv run computer-vision forecast
+    env:
+      FORECASTER_DB_HOST: localhost
+      FORECASTER_DB_PORT: 5432
+      FORECASTER_DB_DATABASE: postgres
+      FORECASTER_DB_USER: modello-cnn3d
+      FORECASTER_DB_PASSWORD: modello-cnn3d
+      FORECASTER_DB_SSLROOTCERT: ./architecture/after/certs/ca.crt
+      FORECASTER_DB_SSLCERT: ./architecture/after/certs/modello-cnn3d.crt
+      FORECASTER_DB_SSLKEY: ./architecture/after/certs/modello-cnn3d.key
+      FORECASTER_MODEL_PATH: ./output/train/cnn3d.zip
