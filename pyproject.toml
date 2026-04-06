@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "apscheduler>=3.11.2",
     "cyclopts>=4.6.0",
     "darts>=0.42.1",
     "dvc>=3.66.1",
