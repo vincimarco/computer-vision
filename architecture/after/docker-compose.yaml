@@ -158,6 +158,24 @@ services:
       - "3000:3000"
     networks:
       - energy_net
+    
+
+    forecaster:
+      image: m.vinci/forecaster
+      container_name: forecaster
+      environment:
+        - FORECASTER_DB_HOST=postgres
+        - FORECASTER_DB_PORT=5432
+        - FORECASTER_DB_DATABASE=postgres
+        - FORECASTER_DB_USER=modello-cnn3d
+        - FORECASTER_DB_PASSWORD=modello-cnn3d
+        - FORECASTER_DB_SSLROOTCERT=/certs/ca.crt
+        - FORECASTER_DB_SSLCERT=/certs/modello-cnn3d.crt
+        - FORECASTER_DB_SSLKEY=/certs/modello-cnn3d.key
+        - FORECASTER_MODEL_PATH=/forecaster/cnn3d.zip
+      volumes:
+        - ./config/modello-cnn3d/certs:/certs
+        - ./data/modello-cnn3d/cnn3d.zip:/forecaster/cnn3d.zip
 
 volumes:
   mosquitto-data:
