@@ -138,20 +138,20 @@ services:
     networks:
       - energy_net
 
-    forecaster:
-      image: m.vinci/forecaster
-      container_name: forecaster
-      env_file:
-        - ./envfiles/forecaster.env
-      volumes:
-        - ./config/modello-cnn3d/certs:/certs
-        - ./data/modello-cnn3d/cnn3d.zip:/forecaster/cnn3d.zip
-      secrets:
-        - forecaster_db_name
-        - forecaster_db_user
-        - forecaster_db_password
-      networks:
-        - energy_net
+  forecaster:
+    image: m.vinci/forecaster
+    container_name: forecaster
+    env_file:
+      - ./envfiles/forecaster.env
+    volumes:
+      - ./config/modello-cnn3d/certs:/certs
+      - ./data/modello-cnn3d/cnn3d.zip:/forecaster/cnn3d.zip
+    secrets:
+      - forecaster_db_name
+      - forecaster_db_user
+      - forecaster_db_password
+    networks:
+      - energy_net
 
 volumes:
   mosquitto-data:
