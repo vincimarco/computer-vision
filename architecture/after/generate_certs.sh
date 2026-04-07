@@ -10,8 +10,8 @@ CA_SERIAL="certs/ca.srl"
 echo "00" > "$CA_SERIAL"
 
 echo "Generating Root CA..."
-openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -nodes \
-  -keyout "$CA_KEY" -out "$CA_CERT" \
+openssl ecparam -name secp384r1 -genkey -noout -out "$CA_KEY"
+openssl req -x509 -new -sha256 -key "$CA_KEY" -days 365 -out "$CA_CERT" \
   -subj "/C=XX/ST=State/L=City/O=Academic Project/OU=Security Team/CN=Root Authority"
 
 generate_cert() {
@@ -21,14 +21,14 @@ generate_cert() {
   shift 3
   local extra_args=("$@")
 
-  openssl req -newkey rsa:4096 -sha256 -days 365 -nodes \
-    -keyout "$key" -out "$cert" \
+  openssl ecparam -name secp384r1 -genkey -noout -out "$key"
+  openssl req -new -sha256 -key "$key" -out "$cert" \
     -config "$config" \
     "${extra_args[@]}"
 
   openssl x509 -req -in "$cert" -CA "$CA_CERT" -CAkey "$CA_KEY" -CAserial "$CA_SERIAL" \
-    -out "$cert" -days 365 \
-    -extensions req_ext -extfile $config
+    -out "$cert" -days 365 -sha256 \
+    -extensions req_ext -extfile "$config"
 }
 
 TEST_CLIENT_KEY="certs/testclient.key"
