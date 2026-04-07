@@ -54,7 +54,8 @@ GRANT SELECT ON TABLE public.previsione TO grafana;
 GRANT SELECT ON TABLE public.step TO grafana;
 
 CREATE ROLE "modello-cnn3d" NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'modello-cnn3d';
-GRANT INSERT ON TABLE public.previsione TO "modello-cnn3d";
+GRANT SELECT ON TABLE public.misura TO "modello-cnn3d"
+GRANT INSERT ON TABLE public.previsione TO "modello-cnn3d"
+GRANT SELECT ON TABLE public.previsione TO "modello-cnn3d";
 GRANT INSERT ON TABLE public.step TO "modello-cnn3d";
 GRANT SELECT ON TABLE public.modello TO "modello-cnn3d";
-
