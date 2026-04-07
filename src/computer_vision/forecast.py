@@ -10,20 +10,26 @@ from sktime.forecasting.compose import ForecastingPipeline
 
 
 def forecast():
+    db_settings = get_db_settings()
     scheduler = BlockingScheduler()
     scheduler.add_job(
-        run_forecast_pipeline, "cron", minute=0, second=0, misfire_grace_time=None
+        run_forecast_pipeline,
+        "cron",
+        kwargs={"db_settings": db_settings},
+        minute=0,
+        second=0,
+        misfire_grace_time=None,
     )
     logger.info("Starting forecast scheduler...")
     scheduler.start()
 
 
-def run_forecast_pipeline():
+def run_forecast_pipeline(db_settings: dict | None = None):
     logger.info("Starting forecast pipeline...")
     forecaster = load_forecaster(model_name="cnn3d")
     logger.debug(f"Forecaster cutoff: {forecaster.cutoff}")
 
-    latest_panel = load_latest_panel_data(forecaster.cutoff)
+    latest_panel = load_latest_panel_data(forecaster.cutoff, db_settings)
     if not latest_panel.empty:
         logger.info("Updating forecaster with latest measurements from DB...")
         y = latest_panel
@@ -60,14 +66,14 @@ def load_forecaster(model_name: str | None = None) -> ForecastingPipeline:
     return forecaster
 
 
-def load_latest_panel_data(cutoff):
+def load_latest_panel_data(cutoff, db_settings: dict) -> pd.DataFrame:
     query = """
         SELECT misuratore_id, timestamp, consumo
         FROM misura
         WHERE timestamp > %s
         ORDER BY misuratore_id, timestamp
     """
-    with psycopg.connect(**db_settings()) as conn:
+    with psycopg.connect(**(db_settings)) as conn:
         df = pd.read_sql(
             query,
             conn,
@@ -131,7 +137,7 @@ def predict_forecasts(forecaster, X):
     return predictions
 
 
-def save_forecasts(predictions: pd.DataFrame):
+def save_forecasts(predictions: pd.DataFrame, db_settings: dict):
     if predictions.empty:
         logger.warning("No forecast values to save.")
         return
@@ -159,7 +165,7 @@ def save_forecasts(predictions: pd.DataFrame):
         VALUES (%s, %s, %s)
     """
 
-    with psycopg.connect(**db_settings()) as conn:
+    with psycopg.connect(**db_settings) as conn:
         with conn.cursor() as cur:
             for misuratore_id, group in forecast_df.groupby("misuratore_id"):
                 cur.execute(
@@ -183,7 +189,7 @@ def save_forecasts(predictions: pd.DataFrame):
     )
 
 
-def db_settings():
+def get_db_settings():
     settings = {
         "host": os.environ["FORECASTER_DB_HOST"],
         "port": int(os.environ.get("FORECASTER_DB_PORT", 5432)),
