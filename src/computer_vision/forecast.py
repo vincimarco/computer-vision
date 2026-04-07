@@ -4,6 +4,7 @@ import pathlib
 import pandas as pd
 import psycopg
 from apscheduler.schedulers.blocking import BlockingScheduler
+from get_docker_secret import get_docker_secret
 from loguru import logger
 from sktime.forecasting.compose import ForecastingPipeline
 
@@ -186,9 +187,9 @@ def db_settings():
     settings = {
         "host": os.environ["FORECASTER_DB_HOST"],
         "port": int(os.environ.get("FORECASTER_DB_PORT", 5432)),
-        "dbname": os.environ["FORECASTER_DB_DATABASE"],
-        "user": os.environ["FORECASTER_DB_USER"],
-        "password": os.environ["FORECASTER_DB_PASSWORD"],
+        "dbname": get_docker_secret("FORECASTER_DB_NAME"),
+        "user": get_docker_secret("FORECASTER_DB_USER"),
+        "password": get_docker_secret("FORECASTER_DB_PASSWORD"),
     }
 
     sslrootcert = os.environ.get("FORECASTER_DB_SSLROOTCERT")
