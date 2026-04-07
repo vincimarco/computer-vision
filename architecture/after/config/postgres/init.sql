@@ -25,7 +25,7 @@ CREATE TABLE public.modello (
 	CONSTRAINT modello_pk PRIMARY KEY (id)
 );
 
-INSERT INTO public.modello (nome) VALUES ('modello-cnn3d') 
+INSERT INTO public.modello (nome) VALUES ('modello-cnn3d');
 
 CREATE TABLE public.previsione (
 	misuratore_id int NOT NULL,
