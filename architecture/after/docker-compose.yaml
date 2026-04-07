@@ -9,13 +9,8 @@ services:
     container_name: meter-115138
     networks:
       - energy_net
-    environment:
-      - METER_ID=115138
-      - METER_MQTT_HOST=mosquitto
-      - METER_MQTT_PORT=8883
-      - METER_CA_CERT=/meter/certs/ca.crt
-      - METER_CERTFILE=/meter/certs/meter-115138.crt
-      - METER_KEYFILE=/meter/certs/meter-115138.key
+    env_file:
+      - ./envfiles/meter-115138.env
     volumes:
       - ./data/meter/115138.parquet:/meter/data/115138.parquet:ro
       - ./config/meter-115138/ca.crt:/meter/certs/ca.crt
@@ -27,13 +22,8 @@ services:
     container_name: meter-15805
     networks:
       - energy_net
-    environment:
-      - METER_ID=15805
-      - METER_MQTT_HOST=mosquitto
-      - METER_MQTT_PORT=8883
-      - METER_CA_CERT=/meter/certs/ca.crt
-      - METER_CERTFILE=/meter/certs/meter-15805.crt
-      - METER_KEYFILE=/meter/certs/meter-15805.key
+    env_file:
+      - ./envfiles/meter-15805.env
     volumes:
       - ./data/meter/15805.parquet:/meter/data/15805.parquet:ro
       - ./config/meter-15805/ca.crt:/meter/certs/ca.crt
@@ -45,13 +35,8 @@ services:
     container_name: meter-50176
     networks:
       - energy_net
-    environment:
-      - METER_ID=50176
-      - METER_MQTT_HOST=mosquitto
-      - METER_MQTT_PORT=8883
-      - METER_CA_CERT=/meter/certs/ca.crt
-      - METER_CERTFILE=/meter/certs/meter-50176.crt
-      - METER_KEYFILE=/meter/certs/meter-50176.key
+    env_file:
+      - ./envfiles/meter-50176.env
     volumes:
       - ./data/meter/50176.parquet:/meter/data/50176.parquet:ro
       - ./config/meter-50176/ca.crt:/meter/certs/ca.crt
@@ -63,13 +48,8 @@ services:
     container_name: meter-7001
     networks:
       - energy_net
-    environment:
-      - METER_ID=7001
-      - METER_MQTT_HOST=mosquitto
-      - METER_MQTT_PORT=8883
-      - METER_CA_CERT=/meter/certs/ca.crt
-      - METER_CERTFILE=/meter/certs/meter-7001.crt
-      - METER_KEYFILE=/meter/certs/meter-7001.key
+    env_file:
+      - ./envfiles/meter-7001.env
     volumes:
       - ./data/meter/7001.parquet:/meter/data/7001.parquet:ro
       - ./config/meter-7001/ca.crt:/meter/certs/ca.crt
@@ -81,13 +61,8 @@ services:
     container_name: meter-18052
     networks:
       - energy_net
-    environment:
-      - METER_ID=18052
-      - METER_MQTT_HOST=mosquitto
-      - METER_MQTT_PORT=8883
-      - METER_CA_CERT=/meter/certs/ca.crt
-      - METER_CERTFILE=/meter/certs/meter-18052.crt
-      - METER_KEYFILE=/meter/certs/meter-18052.key
+    env_file:
+      - ./envfiles/meter-18052.env
     volumes:
       - ./data/meter/18052.parquet:/meter/data/18052.parquet:ro
       - ./config/meter-18052/ca.crt:/meter/certs/ca.crt
@@ -129,10 +104,8 @@ services:
       context: .
       dockerfile: postgres.dockerfile
     container_name: postgres
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=postgres
+    env_file:
+      - ./envfiles/postgres.env
     ports:
       - "5432:5432"
     volumes:
@@ -141,6 +114,10 @@ services:
       - ./config/postgres/certs/ca.crt:/var/lib/postgresql/ca.crt
       - ./config/postgres/certs/postgres.crt:/var/lib/postgresql/postgres.crt
       - ./config/postgres/certs/postgres.key:/var/lib/postgresql/postgres.key
+    secrets:
+      - postgres_db
+      - postgres_user
+      - postgres_password
     networks:
       - energy_net
 
@@ -148,34 +125,33 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=user
-      - GF_SECURITY_ADMIN_PASSWORD=password
+    env_file:
+      - ./envfiles/grafana.env
     volumes:
       - grafana-data:/var/lib/grafana
       - ./config/grafana/certs:/home/grafana/certs
     ports:
       - "3000:3000"
+    secrets:
+      - grafana_admin_user
+      - grafana_admin_password
     networks:
       - energy_net
-    
 
     forecaster:
       image: m.vinci/forecaster
       container_name: forecaster
-      environment:
-        - FORECASTER_DB_HOST=postgres
-        - FORECASTER_DB_PORT=5432
-        - FORECASTER_DB_DATABASE=postgres
-        - FORECASTER_DB_USER=modello-cnn3d
-        - FORECASTER_DB_PASSWORD=modello-cnn3d
-        - FORECASTER_DB_SSLROOTCERT=/certs/ca.crt
-        - FORECASTER_DB_SSLCERT=/certs/modello-cnn3d.crt
-        - FORECASTER_DB_SSLKEY=/certs/modello-cnn3d.key
-        - FORECASTER_MODEL_PATH=/forecaster/cnn3d.zip
+      env_file:
+        - ./envfiles/forecaster.env
       volumes:
         - ./config/modello-cnn3d/certs:/certs
         - ./data/modello-cnn3d/cnn3d.zip:/forecaster/cnn3d.zip
+      secrets:
+        - forecaster_db_name
+        - forecaster_db_user
+        - forecaster_db_password
+      networks:
+        - energy_net
 
 volumes:
   mosquitto-data:
@@ -185,3 +161,21 @@ volumes:
 networks:
   energy_net:
     driver: bridge
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  postgres_user:
+    file: ./secrets/postgres_user.txt
+  postgres_db:
+    file: ./secrets/postgres_db.txt
+  grafana_admin_user:
+    file: ./secrets/grafana_admin_user.txt
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password.txt
+  forecaster_db_name:
+    file: ./secrets/forecaster_db_name.txt
+  forecaster_db_user:
+    file: ./secrets/forecaster_db_user.txt
+  forecaster_db_password:
+    file: ./secrets/forecaster_db_password.txt
