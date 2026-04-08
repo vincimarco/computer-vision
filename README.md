@@ -1,15 +1,17 @@
 # Computer Vision - Energy Consumption Forecasting
 
-Progetto universitario per l'esame di *Computer Vision*.
+Progetto universitario per l'esame di _Computer Vision_.
 
 ## Panoramica del Progetto
 
 Il progetto è strutturato in due componenti principali:
 
 ### 1. Esperimenti di Previsione Energetica (`src/`)
+
 Esperimenti di previsione dei consumi energetici basandosi su dati storici e caratteristiche temporali. Testa il modello proposto (CNN-3D) con altri modelli SOTA quali XGBoost, LSTM e TCN.
 
 ### 2. Architettura Sicura di Raccolta Dati (`architecture/`)
+
 Stack completo containerizzato con MQTT, PostgreSQL, Node-RED e Grafana per la raccolta, elaborazione e visualizzazione sicura dei dati di consumo. Diviso un una parte non sicura (`before/`) ed una sicura (`/after`).
 
 ---
@@ -46,6 +48,7 @@ src/computer_vision/
 Nel lavoro è stato usato il dataset [ECD-UY](https://figshare.com/collections/_/5428608), in particolare della sezione THC, composto dai consumi di ~110.000 utenze dell'Uruguay.
 
 I dati sono organizzati in tre livelli di elaborazione:
+
 - `data/1.raw/ECD-UY`: File grezzi. Dovrebbero essere 23 file `.csv.tar.gz` più il file `customers.csv`
 - `data/2.interim/ECD-UY`: Dati preprocessati intermedi
 - `data/3.final/ECD-UY`: Dataset finale pronto per il training
@@ -88,7 +91,9 @@ Tutti implementati in sktime.
 L'architettura è divisa in due fasi:
 
 #### **Before** (`architecture/before/`)
+
 Configurazione base con:
+
 - **Misuratori**: Cinque misuratori che inviano dati all'architettura. Ripropongono il test set usato negli esperimenti
 - **Mosquitto**: Message broker MQTT per raccolta dati
 - **Node-RED**: Raccolta dati dal broker e salvataggio sul DB
@@ -96,7 +101,9 @@ Configurazione base con:
 - **Grafana**: Visualizzazione di dati e previsioni
 
 #### **After** (`architecture/after/`)
+
 Architettura messa in sicurezza con:
+
 - **Certificati SSL/TLS**: Comunicazione cifrata tra un servizio e l'altro, e tra misuratori e broker.
 - **MQTT Secure**: Mosquitto con autenticazione e ACL
 - **PostgreSQL Sicuro**: Configurazione con SSL e ruoli
@@ -131,10 +138,6 @@ architecture/after/
 - `build-meter`: Costruisce l'immagine Docker per i meter
 - `build-forecaster`: Costruisce l'immagine Docker per il modello di previsione
 - `architecture-after-up`: Mette su l'architettura con Docker compose
-
-### Note
-
-Si consideri che, per semplicità, utenze e password di amministratore sono contenute direttamente in `docker-compose.yaml`. In un contesto reale le credenziali non vanno salvate in questo modo, visto che verrebbero versionate nel repository del codice sorgente. Piuttosto, tali credenziali dovrebbero essere gestite direttamente sulle macchine che faranno girare i container tramite variabili d'ambiente o, meglio, tramite sei servizi per la gestione dei segreti.
 
 ---
 
