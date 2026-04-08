@@ -15,14 +15,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM python:3.12-slim-bookworm
 
-RUN groupadd --system --gid 999 misuratore \
-    && useradd --system --gid 999 --uid 999 --create-home misuratore
+RUN groupadd --system --gid 999 forecaster \
+    && useradd --system --gid 999 --uid 999 --create-home forecaster
 
-COPY --from=builder --chown=misuratore:misuratore /app /app
+COPY --from=builder --chown=forecaster:forecaster /app /app
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-USER misuratore
+USER forecaster
 
 WORKDIR /app
 
